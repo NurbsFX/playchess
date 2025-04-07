@@ -329,7 +329,7 @@ const ListItem = React.forwardRef<
     }
 
     return (
-        <li>
+        <li className='hover:text-[#6890C9]'>
             <NavigationMenuLink asChild>
                 <a
                     ref={ref}
@@ -343,7 +343,7 @@ const ListItem = React.forwardRef<
                         {logo && <span className="text-[#6890C9]">{logo}</span>}
                         {title}
                     </div>
-                    <p className="text-sm text-gray-500 leading-normal">{children}</p>
+                    <p className=" text-sm text-gray-500 leading-normal">{children}</p>
                 </a>
             </NavigationMenuLink>
         </li>
