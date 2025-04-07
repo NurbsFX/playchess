@@ -285,26 +285,26 @@ const ListItem = React.forwardRef<
     React.ComponentPropsWithoutRef<"a">
 >(({ className, title, children, ...props }, ref) => {
     function cn(...classes: (string | undefined | null | false)[]): string {
-        return classes.filter(Boolean).join(' ');
+        return classes.filter(Boolean).join(" ");
     }
+
     return (
         <li>
             <NavigationMenuLink asChild>
                 <a
                     ref={ref}
                     className={cn(
-                        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                        // Ajoute "whitespace-normal" et éventuellement "break-words"
+                        "block select-none space-y-1 rounded-md p-3 leading-normal whitespace-normal break-words no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
                         className
                     )}
                     {...props}
                 >
-                    <div className="text-sm font-medium leading-none">{title}</div>
-                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                        {children}
-                    </p>
+                    <div className="text-base font-medium leading-normal">{title}</div>
+                    <p className="text-sm  text-gray-500 leading-normal">{children}</p>
                 </a>
             </NavigationMenuLink>
         </li>
-    )
-})
-ListItem.displayName = "ListItem"
+    );
+});
+ListItem.displayName = "ListItem";
