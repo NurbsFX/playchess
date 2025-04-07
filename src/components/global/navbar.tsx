@@ -329,7 +329,7 @@ const ListItem = React.forwardRef<
     }
 
     return (
-        <li className='hover:text-[#6890C9]'>
+        <li>
             <NavigationMenuLink asChild>
                 <a
                     ref={ref}
