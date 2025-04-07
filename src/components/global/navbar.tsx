@@ -39,7 +39,7 @@ const Navbar: React.FC = () => {
 
     const components: { title: string; href: string; description: string }[] = [
         {
-            title: "Alert Dialog",
+            title: "Leçons",
             href: "/docs/primitives/alert-dialog",
             description:
                 "A modal dialog that interrupts the user with important content and expects a response.",
@@ -62,13 +62,19 @@ const Navbar: React.FC = () => {
             description: "Visually or semantically separates content.",
         },
         {
-            title: "Tabs",
+            title: "Ouvertures",
             href: "/docs/primitives/tabs",
             description:
                 "A set of layered sections of content—known as tab panels—that are displayed one at a time.",
         },
         {
-            title: "Tooltip",
+            title: "Finales",
+            href: "/docs/primitives/tooltip",
+            description:
+                "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.",
+        },
+        {
+            title: "Pratique",
             href: "/docs/primitives/tooltip",
             description:
                 "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.",
