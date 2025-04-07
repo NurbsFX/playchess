@@ -4,11 +4,11 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
-import { ModeToggle } from '@/components/items/darkmode';
+import { ModeToggle } from '../items/darkmode';
 import { Button } from '../ui/button';
 import { Menu } from "lucide-react";
 import { motion } from "framer-motion"; // Import Framer Motion ✨
-import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "../ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"; // ➔ Ajoute ça pour cacher proprement
 import {
     NavigationMenu,
@@ -17,7 +17,7 @@ import {
     NavigationMenuLink,
     NavigationMenuList,
     NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu"
+} from "../ui/navigation-menu"
 import { FaRegChessPawn } from "react-icons/fa6";
 import { GraduationCap, Users } from 'lucide-react';
 
