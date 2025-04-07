@@ -13,12 +13,10 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden"; // ➔ Ajoute 
 import {
     NavigationMenu,
     NavigationMenuContent,
-    NavigationMenuIndicator,
     NavigationMenuItem,
     NavigationMenuLink,
     NavigationMenuList,
     NavigationMenuTrigger,
-    NavigationMenuViewport,
 } from "@/components/ui/navigation-menu"
 import { FaRegChessPawn } from "react-icons/fa6";
 import { GraduationCap, Users } from 'lucide-react';
@@ -148,6 +146,25 @@ const Navbar: React.FC = () => {
                                     <NavigationMenuTrigger className="flex items-center gap-2 text-base font-medium transition-colors hover:text-[#6890C9]">
                                         <GraduationCap className="h-5 w-5" />
                                         Apprendre
+                                    </NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                                            {components.map((component) => (
+                                                <ListItem
+                                                    key={component.title}
+                                                    title={component.title}
+                                                    href={component.href}
+                                                >
+                                                    {component.description}
+                                                </ListItem>
+                                            ))}
+                                        </ul>
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <NavigationMenuTrigger className="flex items-center gap-2 text-base font-medium transition-colors hover:text-[#6890C9]">
+                                        <Users className="h-5 w-5" />
+                                        Communauté
                                     </NavigationMenuTrigger>
                                     <NavigationMenuContent>
                                         <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
