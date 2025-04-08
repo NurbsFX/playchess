@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -43,10 +42,7 @@ const formSchema = z.object({
 
 
 
-export default function SignUpForm({
-    className,
-
-}: React.ComponentPropsWithoutRef<"div">) {
+export default function SignUpForm() {
 
     const router = useRouter()
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -99,7 +95,7 @@ export default function SignUpForm({
     };
 
     return (
-        <div className={cn("flex min-h-screen items-center justify-center p-6", className)}>
+        <div className="flex min-h-screen items-center justify-center p-6">
             <Card className="w-full max-w-5xl p-6">
                 <CardHeader className="text-center">
                     <CardTitle className="text-3xl font-bold text-[#27272A] dark:text-white">

@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -11,11 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FaApple, FaFacebookF, FaGoogle } from "react-icons/fa";
 
-export default function LoginForm({
-    className,
-}: React.ComponentPropsWithoutRef<"div">) {
+export default function LoginForm() {
     return (
-        <div className={cn("flex min-h-screen items-center justify-center p-6", className)}>
+        <div className="flex min-h-screen items-center justify-center p-6">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <CardTitle className="text-3xl font-bold text-[#27272A] dark:text-white">
