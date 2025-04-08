@@ -89,9 +89,9 @@ const Navbar: React.FC = () => {
     ];
 
     return (
-        <nav className="w-full bg-[#EDEFF2] dark:bg-[#27272A] shadow">
+        <nav className="fixed top-0 left-0 w-full z-50 bg-white dark:bg-[#27272A] shadow">
             {/* Container global */}
-            <div className="container mx-auto flex items-center justify-between py-4 px-6">
+            <div className="container mx-auto flex items-center justify-between py-4 px-6 ">
 
                 {/* Logo + Menu Desktop */}
                 <div className="flex items-center space-x-8">
@@ -110,7 +110,7 @@ const Navbar: React.FC = () => {
                         <NavigationMenu>
                             <NavigationMenuList>
                                 <NavigationMenuItem>
-                                    <NavigationMenuTrigger className="flex items-center gap-2 text-base font-medium transition-colors bg-[#EDEFF2] dark:bg-[#27272A] hover:text-[#6890C9]">
+                                    <NavigationMenuTrigger className="flex items-center gap-2 text-base font-medium transition-colors bg-white dark:bg-[#27272A] hover:text-[#6890C9]">
                                         <FaRegChessPawn className="h-5 w-5" />
                                         Jouer
                                     </NavigationMenuTrigger>
@@ -158,7 +158,7 @@ const Navbar: React.FC = () => {
 
                                 {/* Menu Apprendre */}
                                 <NavigationMenuItem>
-                                    <NavigationMenuTrigger className="bg-[#EDEFF2] dark:bg-[#27272A] flex items-center gap-2 text-base font-medium transition-colors hover:text-[#6890C9]">
+                                    <NavigationMenuTrigger className="bg-white dark:bg-[#27272A] flex items-center gap-2 text-base font-medium transition-colors hover:text-[#6890C9]">
                                         <GraduationCap className="h-5 w-5" />
                                         Apprendre
                                     </NavigationMenuTrigger>
@@ -180,7 +180,7 @@ const Navbar: React.FC = () => {
 
                                 {/* Menu Communauté */}
                                 <NavigationMenuItem>
-                                    <NavigationMenuTrigger className="bg-[#EDEFF2] dark:bg-[#27272A] flex items-center gap-2 text-base font-medium transition-colors hover:text-[#6890C9]">
+                                    <NavigationMenuTrigger className="bg-white dark:bg-[#27272A] flex items-center gap-2 text-base font-medium transition-colors hover:text-[#6890C9]">
                                         <Users className="h-5 w-5" />
                                         Communauté
                                     </NavigationMenuTrigger>
