@@ -29,15 +29,13 @@ export const columns: ColumnDef<Game>[] = [
         cell: ({ row }) => {
             const player = row.original.whitePlayer;
             return (
-                <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
+                <div className="grid place-items-center gap-2 text-center min-w-[180px]">
+                    <Avatar className="h-10 w-10">
                         <AvatarImage src={player.avatar} alt={player.name} />
                         <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col">
-                        <span className="font-semibold">{player.name}</span>
-                        <span className="text-sm text-gray-500">@{player.username}</span>
-                    </div>
+                    <div className="font-bold">{player.name}</div>
+                    <div className="text-sm text-gray-500">{player.username}</div>
                 </div>
             );
         },
@@ -48,15 +46,13 @@ export const columns: ColumnDef<Game>[] = [
         cell: ({ row }) => {
             const player = row.original.blackPlayer;
             return (
-                <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
+                <div className="grid place-items-center gap-2 text-center min-w-[180px]">
+                    <Avatar className="h-10 w-10">
                         <AvatarImage src={player.avatar} alt={player.name} />
                         <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col">
-                        <span className="font-semibold">{player.name}</span>
-                        <span className="text-sm text-gray-500">@{player.username}</span>
-                    </div>
+                    <div className="font-bold">{player.name}</div>
+                    <div className="text-sm text-gray-500">{player.username}</div>
                 </div>
             );
         },
@@ -65,16 +61,18 @@ export const columns: ColumnDef<Game>[] = [
         accessorKey: "fen",
         header: "Aperçu",
         cell: ({ row }) => (
-            <div className="w-[100px] h-[100px]">
-                <Chessboard
-                    position={row.original.fen}
-                    arePiecesDraggable={false}
-                    boardWidth={100}
-                    customBoardStyle={{
-                        borderRadius: "8px",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                    }}
-                />
+            <div className="flex items-center justify-center">
+                <div className=" w-[100px] h-[100px]">
+                    < Chessboard
+                        position={row.original.fen}
+                        arePiecesDraggable={false}
+                        boardWidth={100}
+                        customBoardStyle={{
+                            borderRadius: "8px",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                        }}
+                    />
+                </div >
             </div>
         ),
     },
@@ -84,17 +82,19 @@ export const columns: ColumnDef<Game>[] = [
         cell: ({ row }) => {
             const result = row.original.result;
             return (
-                <Badge
-                    className={
-                        result === "white"
-                            ? "bg-white text-[#27272A] border border-gray-400 shadow-sm" // ➔ Ajout d'une bordure + ombre
-                            : result === "black"
-                                ? "bg-[#27272A] text-white border border-gray-400 shadow-sm"
-                                : "bg-gray-500 text-white border border-gray-400 shadow-sm"
-                    }
-                >
-                    {result === "white" ? "Blancs" : result === "black" ? "Noirs" : "Nulle"}
-                </Badge>
+                <div className="flex items-center justify-center">
+                    <Badge
+                        className={
+                            result === "white"
+                                ? "bg-white text-[#27272A] border border-gray-400 shadow-sm" // ➔ Ajout d'une bordure + ombre
+                                : result === "black"
+                                    ? "bg-[#27272A] text-white border border-gray-400 shadow-sm"
+                                    : "bg-gray-500 text-white border border-gray-400 shadow-sm"
+                        }
+                    >
+                        {result === "white" ? "Blancs" : result === "black" ? "Noirs" : "Nulle"}
+                    </Badge>
+                </div>
             );
         },
     }

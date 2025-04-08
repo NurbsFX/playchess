@@ -29,16 +29,24 @@ export function DataTable<TData, TValue>({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
+        initialState: {
+            pagination: {
+                pageSize: 5, // 👈 5 lignes par page
+            },
+        },
     });
 
     return (
         <div className="rounded-md border overflow-x-auto">
             <Table>
-                <TableHeader>
+                <TableHeader className="bg-[#F0F2F5] dark:bg-[#1F1F1F]">
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
                             {headerGroup.headers.map((header) => (
-                                <TableHead key={header.id}>
+                                <TableHead
+                                    key={header.id}
+                                    className="text-gray-700 dark:text-gray-300 text-sm font-semibold w-[100px] text-center"
+                                >
                                     {header.isPlaceholder
                                         ? null
                                         : flexRender(
