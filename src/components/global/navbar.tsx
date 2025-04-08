@@ -204,19 +204,20 @@ const Navbar: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Actions (Sign Up / Login) - Desktop */}
                 <div className="hidden md:flex items-center space-x-4">
                     <ModeToggle />
-                    <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
-                        <Link href="/" className="text-white dark:text-black">
-                            S&apos;inscrire
-                        </Link>
-                    </Button>
-                    <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
-                        <Link href="/" className="text-white dark:text-black">
-                            Connexion
-                        </Link>
-                    </Button>
+
+                            <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
+                                <Link href="/signup" className="text-white dark:text-black">
+                                    S&apos;inscrire
+                                </Link>
+                            </Button>
+                            <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
+                                <Link href="/signin" className="text-white dark:text-black">
+                                    Connexion
+                                </Link>
+                            </Button>
+                    
                 </div>
 
                 {/* Menu Mobile (apparait en dessous de md) */}
