@@ -201,7 +201,7 @@ export default function SignUpForm() {
 
 
 
-                            <Button type="submit" className="w-full mt-4">
+                            <Button type="submit" className="w-full mt-4 bg-[#6890C9]">
                                 S&apos;inscrire
                             </Button>
                         </form>
@@ -212,15 +212,15 @@ export default function SignUpForm() {
                                 Ou inscrivez-vous avec
                             </div>
                             <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                                <FaGoogle className="h-5 w-5" />
+                                <FaGoogle className="h-5 w-5 text-[#6890C9]" />
                                 Continuer avec Google
                             </Button>
                             <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                                <FaFacebookF className="h-5 w-5" />
+                                <FaFacebookF className="h-5 w-5 text-[#6890C9]" />
                                 Continuer avec Facebook
                             </Button>
                             <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                                <FaApple className="h-5 w-5" />
+                                <FaApple className="h-5 w-5 text-[#6890C9]" />
                                 Continuer avec Apple
                             </Button>
 
