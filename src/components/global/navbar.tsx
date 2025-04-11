@@ -21,6 +21,8 @@ import {
 import { FaRegChessPawn, FaRegChessKing } from "react-icons/fa6";
 import { BiSolidChess } from "react-icons/bi";
 import { GraduationCap, Users, BookOpenText, MessageCircleMore, Brain, BrainCircuit } from 'lucide-react';
+import { authClient } from "@/lib/auth-client";
+
 
 const Navbar: React.FC = () => {
     const { resolvedTheme } = useTheme();
@@ -87,6 +89,7 @@ const Navbar: React.FC = () => {
             logo: <Users className="h-5 w-5" />,
         }
     ];
+    const { data, error, isPending } = authClient.useSession();
 
     return (
         <nav className="fixed top-0 left-0 w-full z-50 bg-white dark:bg-[#27272A] shadow">
@@ -206,7 +209,16 @@ const Navbar: React.FC = () => {
 
                 <div className="hidden md:flex items-center space-x-4">
                     <ModeToggle />
+                    {data ?
+                        <div>
+                            <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
+                                <Link href="/signup" className="text-white dark:text-black">
+                                    Mon compte
+                                </Link>
+                            </Button>
 
+                        </div>
+                        : <div>
                             <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
                                 <Link href="/signup" className="text-white dark:text-black">
                                     S&apos;inscrire
@@ -217,7 +229,11 @@ const Navbar: React.FC = () => {
                                     Connexion
                                 </Link>
                             </Button>
-                    
+                        </div>
+                    }
+
+
+
                 </div>
 
                 {/* Menu Mobile (apparait en dessous de md) */}

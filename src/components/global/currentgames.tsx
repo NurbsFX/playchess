@@ -127,6 +127,7 @@ export default function CurrentGames() {
                   <Chessboard 
                     position={game.fen} 
                     boardWidth={300}
+                    arePiecesDraggable={false}
                     customBoardStyle={{
                       borderRadius: "4px",
                       boxShadow: "0 2px 10px rgba(0, 0, 0, 0.3)",

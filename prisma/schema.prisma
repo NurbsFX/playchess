@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,142 +7,63 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/**
- * Enum pour le résultat d'une partie
- */
- 
-enum GameResult {
-  WHITE
-  BLACK
-  DRAW
-}
 
-/**
- * Enum pour catégoriser des puzzles
- */
-enum PuzzleType {
-  CHECKMATE_IN_1
-  CHECKMATE_IN_2
-  ENDGAME
-  TACTIC
-  OTHER
-}
-
-/**
- * Modèle User
- * - email, phone, username
- * - profil, stats de base (rating actuel, totalGames, etc.)
- * - relations vers EloHistory, games, lessons, puzzles
- */
 model User {
-  id         String       @id @default(uuid())
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  sessions      Session[]
+  accounts      Account[]
 
-  email      String       @unique
-  phone      String?
-  username   String       @unique
-  firstName  String?
-  lastName   String?
-  password   String
-
-  // Statistiques de base
-  rating     Int          @default(1200) // Rating actuel
-  totalGames Int          @default(0)
-  wins       Int          @default(0)
-  draws      Int          @default(0)
-  losses     Int          @default(0)
-
-  /**
-   * Historique ELO (progression dans le temps).
-   * Chaque enregistrement indique le rating à un instant donné.
-   */
-  eloHistory EloHistory[]
-
-  // Relations vers les parties jouées
-  whiteGames Game[]       @relation("WhitePlayer")
-  blackGames Game[]       @relation("BlackPlayer")
-
-  lessons    Lesson[]     @relation("LessonAuthor")
-  puzzles    Puzzle[]     @relation("PuzzleCreator")
+  @@unique([email])
+  @@map("user")
 }
 
-/**
- * Historique d'ELO
- * - Chaque entrée représente le rating d'un user à un moment donné
- * - "rating" = ELO après une partie ou un événement
- * - "recordedAt" = date/heure de la prise en compte
- */
-model EloHistory {
-  id         String   @id @default(uuid())
-  user       User     @relation(fields: [userId], references: [id])
-  userId     String
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  rating     Int
-  recordedAt DateTime @default(now())
+  @@unique([token])
+  @@map("session")
 }
 
-/**
- * Modèle Game
- * - Joueur blanc, joueur noir
- * - moves (PGN, SAN, etc.)
- * - result
- * - stats temporelles : date/heure de début et de fin
- */
-model Game {
-  id        String     @id @default(uuid())
-  createdAt DateTime   @default(now())
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
 
-  // Relations vers User (blanc et noir)
-  white     User       @relation("WhitePlayer", fields: [whiteId], references: [id])
-  whiteId   String
-  black     User       @relation("BlackPlayer", fields: [blackId], references: [id])
-  blackId   String
-
-  // Mouvements de la partie, format libre
-  moves     String?
-
-  // Résultat final
-  result    GameResult
-
-  // Dates de début et de fin
-  startedAt DateTime?  // Optionnel : s'il y a un lobby avant le démarrage
-  endedAt   DateTime?  // Quand la partie se termine
+  @@map("account")
 }
 
-/**
- * Modèle Lesson (Leçons d'échecs)
- * - Titre, contenu, difficulté
- * - Auteur (relation optionnelle)
- */
-model Lesson {
-  id         String   @id @default(uuid())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
 
-  title      String
-  content    String
-  difficulty Int?
-
-  author     User?    @relation("LessonAuthor", fields: [authorId], references: [id])
-  authorId   String?
-}
-
-/**
- * Modèle Puzzle (Problèmes tactiques)
- * - fen, solution, puzzleType, difficulty
- * - Créateur (optionnel)
- */
-model Puzzle {
-  id         String     @id @default(uuid())
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-
-  fen        String
-  solution   String?
-  puzzleType PuzzleType
-  difficulty Int?
-
-  creator    User?      @relation("PuzzleCreator", fields: [creatorId], references: [id])
-  creatorId  String?
+  @@map("verification")
 }

@@ -30,7 +30,7 @@ const HeroSection = () => {
             </div>
 
             {/* Plateau d'échecs côté droit */}
-            <div className="w-full max-w-md md:max-w-lg">
+            <div className="w-fit md:w-fit border-black border-2 ">
                 <Chessboard
                     id="BasicBoard"
                     boardWidth={400}
