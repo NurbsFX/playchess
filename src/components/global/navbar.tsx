@@ -280,7 +280,7 @@ const Navbar: React.FC = () => {
                             </DropdownMenu>
 
                         </div>
-                        : <div>
+                        : <div className="flex flex-col space-y-4">
                             <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
                                 <Link href="/signup" className="text-white dark:text-black">
                                     S&apos;inscrire
