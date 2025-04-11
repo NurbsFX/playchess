@@ -6,10 +6,6 @@ import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { ModeToggle } from '../items/darkmode';
 import { Button } from '../ui/button';
-import { Menu } from "lucide-react";
-import { motion } from "framer-motion"; // Import Framer Motion ✨
-import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "../ui/sheet";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden"; // ➔ Ajoute ça pour cacher proprement
 import {
     NavigationMenu,
     NavigationMenuContent,
@@ -20,7 +16,7 @@ import {
 } from "../ui/navigation-menu"
 import { FaRegChessPawn, FaRegChessKing } from "react-icons/fa6";
 import { BiSolidChess } from "react-icons/bi";
-import { GraduationCap, Users, BookOpenText, MessageCircleMore, Brain, BrainCircuit } from 'lucide-react';
+import { GraduationCap, Users, BookOpenText, MessageCircleMore, Brain, BrainCircuit, User } from 'lucide-react';
 import { authClient } from "@/lib/auth-client";
 import {
     DropdownMenu,
@@ -28,21 +24,17 @@ import {
     DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuPortal,
     DropdownMenuSeparator,
     DropdownMenuShortcut,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User } from 'lucide-react';
-
-
+import { useRouter } from "next/navigation"; // <== Ajoute ça tout en haut
 
 const Navbar: React.FC = () => {
     const { resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const { data } = authClient.useSession();
+    const router = useRouter();
 
     useEffect(() => {
         setMounted(true);
@@ -79,7 +71,7 @@ const Navbar: React.FC = () => {
             logo: <FaRegChessKing className="h-5 w-5" />,
             href: "/docs/primitives/tooltip",
             description:
-                "Maîtrisez l’art de convertir vos avantages en victoire grâce à des exercices de finales.",
+                "Maîtrisez l'art de convertir vos avantages en victoire grâce à des exercices de finales.",
         },
         {
             title: "S'entraîner avec une IA",
@@ -106,7 +98,15 @@ const Navbar: React.FC = () => {
         }
     ];
 
-    const { data } = authClient.useSession();
+    const handleSignOut = async () => {
+        await authClient.signOut({
+            fetchOptions: {
+                onSuccess: () => {
+                    router.push("/"); // ✅ Redirige après déconnexion
+                },
+            },
+        });
+    };
 
     return (
         <nav className="fixed top-0 left-0 w-full z-50 bg-white dark:bg-[#27272A] shadow">
@@ -226,172 +226,56 @@ const Navbar: React.FC = () => {
 
                 <div className="hidden md:flex items-center space-x-4">
                     <ModeToggle />
-                    {data ?
-                        <div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
-                                        <User />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56">
-                                    <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem>
-                                            Profil
-                                            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                            Paramètres
-                                            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-                                        </DropdownMenuItem>
-
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem>Team</DropdownMenuItem>
-                                        <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger>Invite users</DropdownMenuSubTrigger>
-                                            <DropdownMenuPortal>
-                                                <DropdownMenuSubContent>
-                                                    <DropdownMenuItem>Email</DropdownMenuItem>
-                                                    <DropdownMenuItem>Message</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem>More...</DropdownMenuItem>
-                                                </DropdownMenuSubContent>
-                                            </DropdownMenuPortal>
-                                        </DropdownMenuSub>
-                                        <DropdownMenuItem>
-                                            New Team
-                                            <DropdownMenuShortcut>⌘+T</DropdownMenuShortcut>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>GitHub</DropdownMenuItem>
-                                    <DropdownMenuItem>Support</DropdownMenuItem>
-                                    <DropdownMenuItem disabled>API</DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                        Log out
-                                        <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-
-                        </div>
-                        : <div className="flex flex-col space-y-4">
-                            <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
-                                <Link href="/signup" className="text-white dark:text-black">
-                                    S&apos;inscrire
-                                </Link>
-                            </Button>
-                            <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
-                                <Link href="/signin" className="text-white dark:text-black">
-                                    Connexion
-                                </Link>
-                            </Button>
-                        </div>
-                    }
-
-
-
-                </div>
-
-                {/* Menu Mobile (apparait en dessous de md) */}
-                <div className="md:hidden flex items-center space-x-4">
-                    <ModeToggle />
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="outline" size="icon">
-                                <Menu className="h-6 w-6" />
-                                <span className="sr-only">Menu</span>
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="right" className="p-0">
-                            <motion.div
-                                initial={{ x: "100%" }}
-                                animate={{ x: 0 }}
-                                exit={{ x: "100%" }}
-                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                className="flex flex-col h-full bg-[#EDEFF2] dark:bg-[#27272A] p-6"
-                            >
-                                {/* Titre invisible pour accessibilité */}
-                                <VisuallyHidden>
-                                    <SheetTitle>Menu de Navigation</SheetTitle>
-                                </VisuallyHidden>
-
-                                {/* Liens de base en mobile */}
-                                <div className="flex flex-col space-y-2 text-gray-800 dark:text-gray-200 font-semibold text-lg">
-                                    <div className="flex flex-col space-y-1">
-                                        <span className="text-base uppercase tracking-wider dark:text-white text-[#27272a] ">
-                                            Jouer
-                                        </span>
-                                        <Link href="/" className="text-gray-400 hover:text-[#6890C9] transition-colors">
-                                            Mes parties
-                                        </Link>
-                                        <Link href="/play/versus" className="text-gray-400 hover:text-[#6890C9] transition-colors">
-                                            Jouer contre un adversaire
-                                        </Link>
-                                        <Link href="/play/ai" className="text-gray-400 hover:text-[#6890C9] transition-colors">
-                                            Jouer contre une IA
-                                        </Link>
-                                        <Link href="/play/tournament" className="text-gray-400 hover:text-[#6890C9] transition-colors">
-                                            Tournois
-                                        </Link>
-                                    </div>
-
-                                    <div className="flex flex-col space-y-1 mt-6">
-                                        <span className="text-base uppercase tracking-wider dark:text-white text-[#27272a]">
-                                            Apprendre
-                                        </span>
-                                        {learn.map((item) => (
-                                            <Link key={item.title} href={item.href} className="text-gray-400 hover:text-[#6890C9] transition-colors">
-                                                {item.title}
-                                            </Link>
-                                        ))}
-                                    </div>
-
-                                    <div className="flex flex-col space-y-1 mt-6">
-                                        <span className="text-base uppercase tracking-wider  dark:text-white text-[#27272a]">
-                                            Communauté
-                                        </span>
-                                        {community.map((item) => (
-                                            <Link key={item.title} href={item.href} className="hover:text-[#6890C9] text-gray-400 transition-colors">
-                                                {item.title}
-                                            </Link>
-                                        ))}
-                                    </div>
+                    <div className="flex gap-4">
+                        {
+                            data ?
+                                <div>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] text-white dark:text-black hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB]">
+                                                <User />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent className="w-56">
+                                            <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuGroup>
+                                                <DropdownMenuItem>
+                                                    Profile
+                                                    <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem>
+                                                    Paramètres
+                                                    <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                                                </DropdownMenuItem>
+                                            </DropdownMenuGroup>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={handleSignOut}>
+                                                Se déconnecter
+                                                <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
-
-                                <div className="border-t border-gray-300 dark:border-gray-600 my-6" />
-
-                                {/* Actions Sign Up / Login en mobile */}
-                                <div className="flex flex-col space-y-4">
-                                    <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] text-white dark:text-black hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] w-full">
-                                        <Link href="/" className="w-full text-center">
+                                :
+                                <div className="flex gap-4">
+                                    <Link href="/signup">
+                                        <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] text-white dark:text-black hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB]">
                                             S&apos;inscrire
-                                        </Link>
-                                    </Button>
-                                    <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] text-white dark:text-black hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] w-full">
-                                        <Link href="/" className="w-full text-center">
-                                            Connexion
-                                        </Link>
-                                    </Button>
-                                </div>
-
-                                {/* Bouton de fermeture en bas */}
-                                <div className="mt-auto">
-                                    <SheetClose asChild>
-                                        <Button variant="ghost" className="w-full">
-                                            Fermer
                                         </Button>
-                                    </SheetClose>
+                                    </Link>
+                                    <Link href="/signin">
+                                        <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] text-white dark:text-black hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB]">
+                                            Connexion
+                                        </Button>
+                                    </Link>
                                 </div>
-                            </motion.div>
-                        </SheetContent>
-                    </Sheet>
+                        }
+
+                    </div>
                 </div>
+
             </div>
         </nav >
     );
