@@ -28,12 +28,25 @@ import {
     DropdownMenuShortcut,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useRouter } from "next/navigation"; // <== Ajoute ça tout en haut
+import { useRouter } from "next/navigation";
 
-const Navbar: React.FC = () => {
+// Définir le type pour la session
+type Session = {
+    user?: {
+        id: string;
+        email: string;
+        name?: string;
+    };
+} | null;
+
+// Modifier l'interface pour accepter la session comme prop
+interface NavbarProps {
+    session: Session;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ session }) => {
     const { resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
-    const { data } = authClient.useSession();
     const router = useRouter();
 
     useEffect(() => {
@@ -99,13 +112,9 @@ const Navbar: React.FC = () => {
     ];
 
     const handleSignOut = async () => {
-        await authClient.signOut({
-            fetchOptions: {
-                onSuccess: () => {
-                    router.push("/"); // ✅ Redirige après déconnexion
-                },
-            },
-        });
+        await authClient.signOut();
+        router.push("/"); // Redirige
+        router.refresh(); // Puis refresh
     };
 
     return (
@@ -228,7 +237,7 @@ const Navbar: React.FC = () => {
                     <ModeToggle />
                     <div className="flex gap-4">
                         {
-                            data ?
+                            session ?
                                 <div>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
