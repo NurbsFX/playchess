@@ -22,6 +22,22 @@ import { FaRegChessPawn, FaRegChessKing } from "react-icons/fa6";
 import { BiSolidChess } from "react-icons/bi";
 import { GraduationCap, Users, BookOpenText, MessageCircleMore, Brain, BrainCircuit } from 'lucide-react';
 import { authClient } from "@/lib/auth-client";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuPortal,
+    DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { User } from 'lucide-react';
+
 
 
 const Navbar: React.FC = () => {
@@ -89,7 +105,8 @@ const Navbar: React.FC = () => {
             logo: <Users className="h-5 w-5" />,
         }
     ];
-    const { data, error, isPending } = authClient.useSession();
+
+    const { data } = authClient.useSession();
 
     return (
         <nav className="fixed top-0 left-0 w-full z-50 bg-white dark:bg-[#27272A] shadow">
@@ -211,11 +228,56 @@ const Navbar: React.FC = () => {
                     <ModeToggle />
                     {data ?
                         <div>
-                            <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
-                                <Link href="/signup" className="text-white dark:text-black">
-                                    Mon compte
-                                </Link>
-                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition-colors duration-300 ease-in-out">
+                                        <User />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56">
+                                    <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem>
+                                            Profil
+                                            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                            Paramètres
+                                            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                                        </DropdownMenuItem>
+
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem>Team</DropdownMenuItem>
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger>Invite users</DropdownMenuSubTrigger>
+                                            <DropdownMenuPortal>
+                                                <DropdownMenuSubContent>
+                                                    <DropdownMenuItem>Email</DropdownMenuItem>
+                                                    <DropdownMenuItem>Message</DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem>More...</DropdownMenuItem>
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuPortal>
+                                        </DropdownMenuSub>
+                                        <DropdownMenuItem>
+                                            New Team
+                                            <DropdownMenuShortcut>⌘+T</DropdownMenuShortcut>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>GitHub</DropdownMenuItem>
+                                    <DropdownMenuItem>Support</DropdownMenuItem>
+                                    <DropdownMenuItem disabled>API</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>
+                                        Log out
+                                        <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
 
                         </div>
                         : <div>
@@ -331,7 +393,7 @@ const Navbar: React.FC = () => {
                     </Sheet>
                 </div>
             </div>
-        </nav>
+        </nav >
     );
 };
 
