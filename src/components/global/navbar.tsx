@@ -16,7 +16,7 @@ import {
 } from "../ui/navigation-menu"
 import { FaRegChessPawn, FaRegChessKing } from "react-icons/fa6";
 import { BiSolidChess } from "react-icons/bi";
-import { GraduationCap, Users, BookOpenText, MessageCircleMore, Brain, BrainCircuit, User } from 'lucide-react';
+import { GraduationCap, Users, BookOpenText, MessageCircleMore, Brain, BrainCircuit } from 'lucide-react';
 import { authClient } from "@/lib/auth-client";
 import {
     DropdownMenu,
