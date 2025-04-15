@@ -19,6 +19,18 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
+  // Relations to games
+  whiteGames    Game[]    @relation("WhiteGames")
+  blackGames    Game[]    @relation("BlackGames")
+  
+  // Relations to invitations
+  sentInvitations     GameInvitation[] @relation("SentInvitations")
+  receivedInvitations GameInvitation[] @relation("ReceivedInvitations")
+
+  // Relations to RatingHistory and UserDetails
+  ratingHistories RatingHistory[]
+  userDetails    UserDetails?
+
   @@unique([email])
   @@map("user")
 }
@@ -66,4 +78,80 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+model Game {
+  id          String    @id @default(uuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  playerWhite User      @relation("WhiteGames", fields: [playerWhiteId], references: [id])
+  playerWhiteId String
+  playerBlack User      @relation("BlackGames", fields: [playerBlackId], references: [id])
+  playerBlackId String
+  moves       Move[]
+  result      GameResult
+  status      GameStatus @default(PENDING)
+  startedAt   DateTime?
+  endedAt     DateTime?
+}
+
+model Move {
+  id        String   @id @default(uuid())
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameId    String
+  moveNumber Int
+  notation  String   // e.g., "e4", "Nf3", "O-O"
+  fen       String   // Board state after this move
+  createdAt DateTime @default(now())
+}
+
+model GameInvitation {
+  id         String    @id @default(uuid())
+  sender     User      @relation("SentInvitations", fields: [senderId], references: [id])
+  senderId   String
+  receiver   User      @relation("ReceivedInvitations", fields: [receiverId], references: [id])
+  receiverId String
+  createdAt  DateTime  @default(now())
+  status     InvitationStatus @default(PENDING)
+}
+
+model RatingHistory {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  rating     Int
+  createdAt  DateTime @default(now())
+}
+
+enum GameResult {
+  WHITE_WIN
+  BLACK_WIN
+  DRAW
+  ABORTED
+  UNDECIDED
+}
+
+enum GameStatus {
+  PENDING
+  ONGOING
+  FINISHED
+  ABORTED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+model UserDetails {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String   @unique
+  username   String   @unique
+  country    String?  // Optional: user country
+  bio        String?  // Optional: short biography
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

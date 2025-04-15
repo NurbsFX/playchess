@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react";
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
 // Crée une instance du client BetterAuth
 export const authClient = createAuthClient({
