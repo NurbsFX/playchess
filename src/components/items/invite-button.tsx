@@ -22,7 +22,7 @@ export function InviteButton({ receiverId }: InviteButtonProps) {
         toast.success('Invitation envoyée')
       }
     } catch (error) {
-      toast.error('Erreur lors de l\'envoi de l\'invitation')
+      toast.error(`Erreur lors de l'envoi de l'invitation: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
     } finally {
       setIsLoading(false)
     }

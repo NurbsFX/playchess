@@ -16,7 +16,7 @@ export function NotificationBell() {
       await acceptInvitation(invitationId)
       toast.success('Partie créée !')
     } catch (error) {
-      toast.error('Erreur lors de l\'acceptation de l\'invitation')
+      toast.error(`Erreur lors de l'acceptation de l'invitation: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
     }
   }
 
@@ -25,7 +25,7 @@ export function NotificationBell() {
       await declineInvitation(invitationId)
       toast.success('Invitation refusée')
     } catch (error) {
-      toast.error('Erreur lors du refus de l\'invitation')
+      toast.error(`Erreur lors du refus de l'invitation: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
     }
   }
 
