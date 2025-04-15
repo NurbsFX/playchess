@@ -23,8 +23,8 @@ export default function PlayPage() {
   const [message, setMessage] = useState('')
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [gameInfo, setGameInfo] = useState<{
-    playerWhite?: { id: string; name: string; image?: string | null };
-    playerBlack?: { id: string; name: string; image?: string | null };
+    playerWhite?: { id: string; name: string; image?: string | null }
+    playerBlack?: { id: string; name: string; image?: string | null }
   }>({})
 
   useEffect(() => {
@@ -43,18 +43,11 @@ export default function PlayPage() {
           setGameId(game.id)
           setGameInfo({
             playerWhite: game.playerWhite,
-            playerBlack: game.playerBlack
+            playerBlack: game.playerBlack,
           })
 
-          // Déterminer l'ID de l'utilisateur actuel à partir des données du jeu
-          // Nous allons utiliser une approche différente pour obtenir l'ID de l'utilisateur
-          // en vérifiant si l'utilisateur est le joueur blanc ou noir
-          if (game.playerWhite && game.playerBlack) {
-            // Nous allons simplement définir l'ID de l'utilisateur actuel comme étant celui du joueur blanc
-            // Dans une implémentation réelle, vous devriez obtenir l'ID de l'utilisateur connecté
-            // via une API ou un contexte d'authentification
-            setCurrentUserId(game.playerWhite.id)
-          }
+          // ⚠️ À adapter avec ton système auth réel (ici : mock de l'utilisateur connecté)
+          setCurrentUserId(game.playerWhite.id) // ← à changer avec ton auth réel
         }
       } catch (error) {
         console.error('Erreur lors du chargement de la partie:', error)
@@ -66,54 +59,35 @@ export default function PlayPage() {
     loadGame()
   }, [])
 
-  // Vérifie si c'est le tour du joueur actuel
+  const getPlayerColor = (): 'w' | 'b' | null => {
+    if (!currentUserId || !gameInfo.playerWhite || !gameInfo.playerBlack) return null
+    if (gameInfo.playerWhite.id === currentUserId) return 'w'
+    if (gameInfo.playerBlack.id === currentUserId) return 'b'
+    return null
+  }
+
   const isPlayerTurn = () => {
-    if (!currentUserId || !gameInfo.playerWhite || !gameInfo.playerBlack) return false
-
-    const isWhitePlayer = currentUserId === gameInfo.playerWhite.id
-    const isBlackPlayer = currentUserId === gameInfo.playerBlack.id
-
-    return (isWhitePlayer && chess.turn() === 'w') || (isBlackPlayer && chess.turn() === 'b')
-  }
-
-  // Vérifie si le joueur actuel est le joueur blanc
-  const isWhitePlayer = () => {
-    if (!currentUserId || !gameInfo.playerWhite) return false
-    return currentUserId === gameInfo.playerWhite.id
-  }
-
-  // Vérifie si le joueur actuel est le joueur noir
-  const isBlackPlayer = () => {
-    if (!currentUserId || !gameInfo.playerBlack) return false
-    return currentUserId === gameInfo.playerBlack.id
+    const playerColor = getPlayerColor()
+    return playerColor === chess.turn()
   }
 
   const handleDrop = (sourceSquare: string, targetSquare: string) => {
-    // Vérifier si c'est le tour du joueur
-    if (!isPlayerTurn()) {
-      return false
-    }
+    const playerColor = getPlayerColor()
 
-    // Vérifier si le joueur essaie de déplacer une pièce de sa couleur
+    if (!isPlayerTurn() || !playerColor) return false
+
     const piece = chess.get(sourceSquare as Square)
-    if (!piece) return false
+    if (!piece || piece.color !== playerColor) return false
 
-    const isWhitePiece = piece.color === 'w'
-    if ((isWhitePiece && !isWhitePlayer()) || (!isWhitePiece && !isBlackPlayer())) {
-      return false
-    }
-
-    // Créer une copie de l'état actuel du jeu
     const chessCopy = new Chess(chess.fen())
-
-    // Vérifier si le coup est valide
     const move = chessCopy.move({ from: sourceSquare, to: targetSquare, promotion: 'q' })
+
     if (move) {
-      // Si le coup est valide, mettre à jour l'état
       setSelectedMove({ from: sourceSquare, to: targetSquare })
       setPreviewFen(chessCopy.fen())
       return true
     }
+
     return false
   }
 
@@ -121,7 +95,6 @@ export default function PlayPage() {
     if (!selectedMove || !gameId) return
     try {
       await playMove(gameId, selectedMove.from, selectedMove.to)
-
       const updated = new Chess(chess.fen())
       updated.move({ from: selectedMove.from, to: selectedMove.to, promotion: 'q' })
       setChess(updated)
@@ -146,63 +119,59 @@ export default function PlayPage() {
 
   const renderPlayerCard = (
     color: 'white' | 'black',
-    player:
-      | { id: string; name: string; image?: string | null }
-      | undefined
-  ) => (
-    <Card className="mb-4">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <div
-            className={`w-3 h-3 rounded-full ${color === 'white' ? 'bg-white border' : 'bg-black'
-              }`}
-          ></div>
-          {color === 'white' ? 'Joueur blanc' : 'Joueur noir'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-        ) : player ? (
-          <div className="flex items-center gap-2">
-            <Avatar>
-              <AvatarImage src={player.image || ''} />
-              <AvatarFallback>
-                {player.name
-                  .split(' ')
-                  .map(n => n[0])
-                  .join('')
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <span>{player.name}</span>
-            {currentUserId === player.id && (
-              <Badge variant="outline" className="ml-2">Vous</Badge>
-            )}
-          </div>
-        ) : (
-          <p className="text-muted-foreground">En attente...</p>
-        )}
-      </CardContent>
-    </Card>
-  )
+    player: { id: string; name: string; image?: string | null } | undefined
+  ) => {
+    const isCurrentUser = player && player.id === currentUserId
+    return (
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${color === 'white' ? 'bg-white border' : 'bg-black'}`} />
+            {color === 'white' ? 'Joueur blanc' : 'Joueur noir'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          ) : player ? (
+            <div className="flex items-center gap-2">
+              <Avatar>
+                <AvatarImage src={player.image || ''} />
+                <AvatarFallback>
+                  {player.name
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span>{player.name}</span>
+              {isCurrentUser && <Badge variant="outline">Vous</Badge>}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">En attente...</p>
+          )}
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8 text-center">Partie en cours</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-[250px_1fr_300px] gap-6">
-        {/* Colonne joueurs */}
+        {/* Joueurs */}
         <div>
           {renderPlayerCard('white', gameInfo.playerWhite)}
           {renderPlayerCard('black', gameInfo.playerBlack)}
         </div>
 
-        {/* Colonne échiquier */}
+        {/* Échiquier */}
         <div className="space-y-6">
           <Card>
             <CardContent className="p-4 flex flex-col items-center">
@@ -215,7 +184,7 @@ export default function PlayPage() {
                       position={previewFen || fen}
                       onPieceDrop={handleDrop}
                       boardWidth={400}
-                      boardOrientation={isWhitePlayer() ? 'white' : 'black'}
+                      boardOrientation={getPlayerColor() === 'w' ? 'white' : 'black'}
                       customBoardStyle={{
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
@@ -229,19 +198,15 @@ export default function PlayPage() {
                         {chess.turn() === 'w' ? 'Blancs' : 'Noirs'}
                       </Badge>
                       {!isPlayerTurn() && (
-                        <span className="ml-2 text-sm text-muted-foreground">
-                          <br />
-                          (En attente du coup de l&apos;adversaire)
+                        <span className="block text-sm text-muted-foreground mt-2">
+                          En attente du coup de l&apos;adversaire
                         </span>
                       )}
                     </p>
                   </div>
                   {selectedMove && (
                     <div className="mt-4 flex gap-2">
-                      <Button
-                        onClick={handleConfirm}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
+                      <Button onClick={handleConfirm} className="bg-green-600 hover:bg-green-700">
                         Confirmer le coup {selectedMove.from} → {selectedMove.to}
                       </Button>
                       <Button onClick={handleCancel} variant="outline">
@@ -255,7 +220,7 @@ export default function PlayPage() {
           </Card>
         </div>
 
-        {/* Colonne messagerie */}
+        {/* Messagerie */}
         <div>
           <Card className="h-full flex flex-col">
             <CardHeader>
@@ -272,10 +237,6 @@ export default function PlayPage() {
                     <div className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%] self-end">
                       <p className="text-sm">Merci, à toi aussi !</p>
                       <p className="text-xs text-primary-foreground/80 mt-1">10:31</p>
-                    </div>
-                    <div className="bg-muted p-3 rounded-lg max-w-[80%] self-start">
-                      <p className="text-sm">J&apos;ai hésité sur ce coup...</p>
-                      <p className="text-xs text-muted-foreground mt-1">10:35</p>
                     </div>
                   </div>
                 </div>
