@@ -29,6 +29,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation";
+import { NotificationBell } from '../items/notification-bell';
 
 // Définir le type pour la session
 type Session = {
@@ -238,35 +239,43 @@ const Navbar: React.FC<NavbarProps> = ({ session }) => {
                     <div className="flex gap-4">
                         {
                             session ?
-                                <div>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button className="bg-[#6890C9] dark:bg-[#EDEFF2] text-white dark:text-black hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB]">
-                                                <User />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent className="w-56">
-                                            <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuGroup>
-                                                <DropdownMenuItem>
-                                                    Profile
-                                                    <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem>
-                                                    Paramètres
-                                                    <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuGroup>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={handleSignOut}>
-                                                Se déconnecter
-                                                <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
+                            <div className="flex items-center gap-3 bg-muted/40 p-1.5 rounded-full">
+                            {/* Bouton notifications */}
+                            <NotificationBell
+                            />
+                          
+                            {/* Bouton utilisateur */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="rounded-full bg-[#6890C9] dark:bg-[#EDEFF2] text-white dark:text-black hover:bg-[#5678A8] dark:hover:bg-[#D1D5DB] transition"
+                                >
+                                  <User className="w-5 h-5" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent className="w-56">
+                                <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuGroup>
+                                  <DropdownMenuItem>
+                                    Profil
+                                    <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    Paramètres
+                                    <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                                  </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleSignOut}>
+                                  Se déconnecter
+                                  <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                                 :
                                 <div className="flex gap-4">
                                     <Link href="/signup">
