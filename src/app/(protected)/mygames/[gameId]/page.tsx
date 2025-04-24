@@ -83,12 +83,19 @@ export default function GamePage() {
         if (!selectedMove || !gameId) return
         try {
             await playMove(gameId as string, selectedMove.from, selectedMove.to)
-            const updated = new Chess(chess.fen())
-            updated.move({ from: selectedMove.from, to: selectedMove.to, promotion: 'q' })
-            setChess(updated)
+
+            // Recharger la partie à jour
+            const game = await getGameById(gameId as string)
+            const c = new Chess()
+            for (const move of game.moves) {
+                c.move(move.notation)
+            }
+
+            setChess(c)
+            setGameInfo(game)
+            setCurrentMove(game.moves.length - 1)
             setPreviewFen(null)
             setSelectedMove(null)
-            setCurrentMove((prev) => prev + 1)
         } catch (e) {
             console.error('Erreur lors du coup', e)
         }
@@ -154,7 +161,18 @@ export default function GamePage() {
                                 <Skeleton className="w-full aspect-square max-w-md" />
                             ) : (
                                 <>
-                                    <div className="w-full max-w-md">
+                                    <div className="w-full max-w-md flex flex-col items-center">
+                                        <div className="mb-4">
+                                            {isPlayerTurn() ? (
+                                                <p className="text-sm text-green-600 font-semibold text-center">
+                                                    C&apos;est à vous de jouer !
+                                                </p>
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground text-center">
+                                                    En attente du coup de l&apos;adversaire...
+                                                </p>
+                                            )}
+                                        </div>
                                         <GameBoard
                                             fen={previewFen || displayedFen}
                                             orientation={getPlayerColor() === 'w' ? 'white' : 'black'}
