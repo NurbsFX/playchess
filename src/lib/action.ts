@@ -47,6 +47,20 @@ type UserWithDetails = User & {
     ratingHistories: { rating: number }[];
 }
 
+export async function getCurrentUserId() {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.email) throw new Error('Non autorisé')
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { id: true },
+    })
+
+    if (!user) throw new Error('Utilisateur introuvable')
+
+    return user.id
+}
+
 export async function getAllPlayers() {
     const users = await prisma.user.findMany({
         include: {
@@ -143,63 +157,63 @@ export async function declineInvitation(invitationId: string) {
 export async function getOngoingGame() {
     const session = await auth.api.getSession({ headers: await headers() })
     if (!session?.user?.email) throw new Error('Non autorisé')
-  
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    })
-  
-    if (!user) throw new Error('Utilisateur introuvable')
-  
-    const game = await prisma.game.findFirst({
-      where: {
-        status: 'ONGOING',
-        OR: [
-          { playerWhiteId: user.id },
-          { playerBlackId: user.id },
-        ],
-      },
-      include: {
-        moves: {
-          orderBy: { moveNumber: 'asc' },
-        },
-        playerWhite: true,
-        playerBlack: true,
-      },
-    })
-  
-    return game
-  }
 
-  export async function playMove(gameId: string, from: string, to: string) {
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+    })
+
+    if (!user) throw new Error('Utilisateur introuvable')
+
+    const game = await prisma.game.findFirst({
+        where: {
+            status: 'ONGOING',
+            OR: [
+                { playerWhiteId: user.id },
+                { playerBlackId: user.id },
+            ],
+        },
+        include: {
+            moves: {
+                orderBy: { moveNumber: 'asc' },
+            },
+            playerWhite: true,
+            playerBlack: true,
+        },
+    })
+
+    return game
+}
+
+export async function playMove(gameId: string, from: string, to: string) {
     const session = await auth.api.getSession({ headers: await headers() })
     if (!session?.user?.email) throw new Error('Non autorisé')
-  
+
     const game = await prisma.game.findUnique({
-      where: { id: gameId },
-      include: { moves: true },
+        where: { id: gameId },
+        include: { moves: true },
     })
-  
+
     if (!game) throw new Error('Partie non trouvée')
-  
+
     // Reconstitue la partie
     const chess = new Chess()
     for (const move of game.moves) {
-      chess.move(move.notation)
+        chess.move(move.notation)
     }
-  
+
     const moveResult = chess.move({ from, to, promotion: 'q' }) // auto-promotion en reine
     if (!moveResult) throw new Error('Coup invalide')
-  
+
     await prisma.move.create({
-      data: {
-        gameId: gameId,
-        moveNumber: game.moves.length + 1,
-        notation: moveResult.san,
-        fen: chess.fen(),
-      },
+        data: {
+            gameId: gameId,
+            moveNumber: game.moves.length + 1,
+            notation: moveResult.san,
+            fen: chess.fen(),
+        },
     })
-  
+
     return { success: true }
-  }
+}
 
 // Tu peux en ajouter autant que tu veux ici…

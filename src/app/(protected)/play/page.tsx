@@ -3,15 +3,13 @@
 import { Chess, Square } from 'chess.js'
 import { useEffect, useState } from 'react'
 import { Chessboard } from 'react-chessboard'
-import { playMove, getOngoingGame } from '@/lib/action'
+import { playMove, getOngoingGame, getCurrentUserId } from '@/lib/action'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Send } from 'lucide-react'
+
 
 export default function PlayPage() {
   const [gameId, setGameId] = useState<string | null>(null)
@@ -20,35 +18,43 @@ export default function PlayPage() {
   const [selectedMove, setSelectedMove] = useState<{ from: string; to: string } | null>(null)
   const [previewFen, setPreviewFen] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [message, setMessage] = useState('')
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [gameInfo, setGameInfo] = useState<{
     playerWhite?: { id: string; name: string; image?: string | null }
     playerBlack?: { id: string; name: string; image?: string | null }
   }>({})
 
+  const [ready, setReady] = useState(false)
+
   useEffect(() => {
     const loadGame = async () => {
       setLoading(true)
       try {
-        const game = await getOngoingGame()
-        if (game) {
-          const c = new Chess()
-          for (const move of game.moves) {
-            c.move(move.notation)
-          }
-          setChess(c)
-          setFen(c.fen())
-          setPreviewFen(null)
-          setGameId(game.id)
-          setGameInfo({
-            playerWhite: game.playerWhite,
-            playerBlack: game.playerBlack,
-          })
+        const [userId, game] = await Promise.all([
+          getCurrentUserId(),
+          getOngoingGame(),
+        ])
 
-          // ⚠️ À adapter avec ton système auth réel (ici : mock de l'utilisateur connecté)
-          setCurrentUserId(game.playerWhite.id) // ← à changer avec ton auth réel
+        if (!game?.playerWhite || !game?.playerBlack) {
+          console.warn('Partie incomplète')
+          return
         }
+
+        const c = new Chess()
+        for (const move of game.moves) {
+          c.move(move.notation)
+        }
+
+        setChess(c)
+        setFen(c.fen())
+        setPreviewFen(null)
+        setGameId(game.id)
+        setGameInfo({
+          playerWhite: game.playerWhite,
+          playerBlack: game.playerBlack,
+        })
+        setCurrentUserId(userId)
+        setReady(true)
       } catch (error) {
         console.error('Erreur lors du chargement de la partie:', error)
       } finally {
@@ -59,8 +65,10 @@ export default function PlayPage() {
     loadGame()
   }, [])
 
+
+
   const getPlayerColor = (): 'w' | 'b' | null => {
-    if (!currentUserId || !gameInfo.playerWhite || !gameInfo.playerBlack) return null
+    if (!ready || !currentUserId || !gameInfo.playerWhite || !gameInfo.playerBlack) return null
     if (gameInfo.playerWhite.id === currentUserId) return 'w'
     if (gameInfo.playerBlack.id === currentUserId) return 'b'
     return null
@@ -111,17 +119,13 @@ export default function PlayPage() {
     setPreviewFen(null)
   }
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('Message à envoyer:', message)
-    setMessage('')
-  }
+
+
 
   const renderPlayerCard = (
     color: 'white' | 'black',
     player: { id: string; name: string; image?: string | null } | undefined
   ) => {
-    const isCurrentUser = player && player.id === currentUserId
     return (
       <Card className="mb-4">
         <CardHeader>
@@ -137,20 +141,26 @@ export default function PlayPage() {
               <Skeleton className="h-4 w-24" />
             </div>
           ) : player ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <Avatar>
                 <AvatarImage src={player.image || ''} />
                 <AvatarFallback>
                   {player.name
                     .split(' ')
-                    .map(n => n[0])
+                    .map((n) => n[0])
                     .join('')
                     .slice(0, 2)
                     .toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span>{player.name}</span>
-              {isCurrentUser && <Badge variant="outline">Vous</Badge>}
+              <div className="flex flex-col">
+                <span className="font-semibold">{player.name}</span>
+                {player.id === currentUserId && (
+                  <span className="text-xs mt-1 text-muted-foreground">
+                    <Badge variant="outline">Vous</Badge>
+                  </span>
+                )}
+              </div>
             </div>
           ) : (
             <p className="text-muted-foreground">En attente...</p>
@@ -160,9 +170,11 @@ export default function PlayPage() {
     )
   }
 
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8 text-center">Partie en cours</h1>
+
 
       <div className="grid grid-cols-1 md:grid-cols-[250px_1fr_300px] gap-6">
         {/* Joueurs */}
@@ -217,44 +229,6 @@ export default function PlayPage() {
                 </>
               )}
             </CardContent>
-          </Card>
-        </div>
-
-        {/* Messagerie */}
-        <div>
-          <Card className="h-full flex flex-col">
-            <CardHeader>
-              <CardTitle>Messagerie</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <ScrollArea className="h-[400px] w-full rounded-md border p-4">
-                <div className="space-y-4">
-                  <div className="flex flex-col space-y-2">
-                    <div className="bg-muted p-3 rounded-lg max-w-[80%] self-start">
-                      <p className="text-sm">Bonjour ! Bonne partie !</p>
-                      <p className="text-xs text-muted-foreground mt-1">10:30</p>
-                    </div>
-                    <div className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%] self-end">
-                      <p className="text-sm">Merci, à toi aussi !</p>
-                      <p className="text-xs text-primary-foreground/80 mt-1">10:31</p>
-                    </div>
-                  </div>
-                </div>
-              </ScrollArea>
-            </CardContent>
-            <CardFooter>
-              <form onSubmit={handleSendMessage} className="flex w-full gap-2">
-                <Input
-                  placeholder="Tapez votre message..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="flex-grow"
-                />
-                <Button type="submit" size="icon">
-                  <Send className="h-4 w-4" />
-                </Button>
-              </form>
-            </CardFooter>
           </Card>
         </div>
       </div>
