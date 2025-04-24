@@ -1,57 +1,53 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Chess, Square } from 'chess.js'
-import { Chessboard } from 'react-chessboard'
-import { playMove, getGameById, getCurrentUserId } from '@/lib/action'
+import GameBoard from '@/components/items/gameboard'
+import MoveNavigator from '@/components/items/movenavigator'
+import { getGameById, getCurrentUserId, playMove } from '@/lib/action'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function GamePage() {
     const { gameId } = useParams()
     const [chess, setChess] = useState(new Chess())
-    const [fen, setFen] = useState('start')
     const [selectedMove, setSelectedMove] = useState<{ from: string; to: string } | null>(null)
     const [previewFen, setPreviewFen] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    const [currentMove, setCurrentMove] = useState(0)
+
     interface GameInfo {
-        playerWhite: { id: string; name: string; image?: string } | null;
-        playerBlack: { id: string; name: string; image?: string } | null;
+        playerWhite: { id: string; name: string; image?: string | null };
+        playerBlack: { id: string; name: string; image?: string | null };
         moves: { notation: string }[];
     }
 
-    const [gameInfo, setGameInfo] = useState<GameInfo>({
-        playerWhite: null,
-        playerBlack: null,
-        moves: [],
-    })
+    const [gameInfo, setGameInfo] = useState<GameInfo | null>(null)
 
     useEffect(() => {
         const load = async () => {
-            setLoading(true)
             try {
                 const [userId, game] = await Promise.all([
                     getCurrentUserId(),
                     getGameById(gameId as string),
                 ])
-
                 const c = new Chess()
                 for (const move of game.moves) {
                     c.move(move.notation)
                 }
-
                 setChess(c)
-                setFen(c.fen())
+                setCurrentMove(game.moves.length - 1)
                 setPreviewFen(null)
+                setSelectedMove(null)
                 setCurrentUserId(userId)
                 setGameInfo(game)
-            } catch (e) {
-                console.error('Erreur lors du chargement de la partie', e)
+            } catch (error) {
+                console.error('Erreur lors du chargement de la partie:', error)
             } finally {
                 setLoading(false)
             }
@@ -59,7 +55,7 @@ export default function GamePage() {
         load()
     }, [gameId])
 
-    const getPlayerColor = () => {
+    const getPlayerColor = (): 'w' | 'b' | null => {
         if (!currentUserId || !gameInfo?.playerWhite || !gameInfo?.playerBlack) return null
         if (gameInfo.playerWhite.id === currentUserId) return 'w'
         if (gameInfo.playerBlack.id === currentUserId) return 'b'
@@ -69,11 +65,10 @@ export default function GamePage() {
     const isPlayerTurn = () => getPlayerColor() === chess.turn()
 
     const handleDrop = (from: string, to: string) => {
+        if (!gameInfo || currentMove !== gameInfo.moves.length - 1) return false
         if (!isPlayerTurn()) return false
-
         const piece = chess.get(from as Square)
         if (!piece || piece.color !== getPlayerColor()) return false
-
         const newGame = new Chess(chess.fen())
         const move = newGame.move({ from, to, promotion: 'q' })
         if (move) {
@@ -91,9 +86,9 @@ export default function GamePage() {
             const updated = new Chess(chess.fen())
             updated.move({ from: selectedMove.from, to: selectedMove.to, promotion: 'q' })
             setChess(updated)
-            setFen(updated.fen())
             setPreviewFen(null)
             setSelectedMove(null)
+            setCurrentMove((prev) => prev + 1)
         } catch (e) {
             console.error('Erreur lors du coup', e)
         }
@@ -104,7 +99,10 @@ export default function GamePage() {
         setPreviewFen(null)
     }
 
-    const renderPlayer = (color: 'white' | 'black', player: { id: string; name: string; image?: string } | null) => (
+    const renderPlayer = (
+        color: 'white' | 'black',
+        player: { id: string; name: string; image?: string | null } | null
+    ) => (
         <Card className="mb-4">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -131,48 +129,49 @@ export default function GamePage() {
         </Card>
     )
 
+    const displayedFen = useMemo(() => {
+        if (!gameInfo) return 'start'
+        const c = new Chess()
+        for (let i = 0; i <= currentMove; i++) {
+            const move = gameInfo.moves[i]
+            if (move) c.move(move.notation)
+        }
+        return c.fen()
+    }, [gameInfo, currentMove])
+
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-8 text-center">Partie</h1>
-
             <div className="grid grid-cols-1 md:grid-cols-[250px_1fr_300px] gap-6">
                 <div>
-                    {renderPlayer('white', gameInfo.playerWhite)}
-                    {renderPlayer('black', gameInfo.playerBlack)}
+                    {renderPlayer('white', gameInfo?.playerWhite ?? null)}
+                    {renderPlayer('black', gameInfo?.playerBlack ?? null)}
                 </div>
-
                 <div className="space-y-6">
                     <Card>
                         <CardContent className="p-4 flex flex-col items-center">
-                            {loading ? (
+                            {loading || !gameInfo ? (
                                 <Skeleton className="w-full aspect-square max-w-md" />
                             ) : (
                                 <>
                                     <div className="w-full max-w-md">
-                                        <Chessboard
-                                            position={previewFen || fen}
-                                            onPieceDrop={handleDrop}
-                                            boardWidth={400}
-                                            boardOrientation={getPlayerColor() === 'w' ? 'white' : 'black'}
-                                            customBoardStyle={{
-                                                borderRadius: '8px',
-                                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                                            }}
+                                        <GameBoard
+                                            fen={previewFen || displayedFen}
+                                            orientation={getPlayerColor() === 'w' ? 'white' : 'black'}
+                                            variant="full"
+                                            onDrop={currentMove === gameInfo.moves.length - 1 ? handleDrop : undefined}
                                         />
                                     </div>
-                                    <div className="mt-4 text-center space-y-2">
-                                        <p>
-                                            C&apos;est au tour des{' '}
-                                            <Badge variant={chess.turn() === 'w' ? 'outline' : 'default'}>
-                                                {chess.turn() === 'w' ? 'Blancs' : 'Noirs'}
-                                            </Badge>
-                                        </p>
-                                        {isPlayerTurn() ? (
-                                            <p className="text-lg text-green-600 font-semibold">C&apos;est à vous de jouer !</p>
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground">En attente du coup de l&apos;adversaire...</p>
-                                        )}
-                                    </div>
+                                    {!selectedMove && (
+                                        <MoveNavigator
+                                            currentMove={currentMove}
+                                            totalMoves={gameInfo.moves.length}
+                                            onFirst={() => setCurrentMove(0)}
+                                            onPrev={() => setCurrentMove((prev) => Math.max(0, prev - 1))}
+                                            onNext={() => setCurrentMove((prev) => Math.min(gameInfo.moves.length - 1, prev + 1))}
+                                            onLast={() => setCurrentMove(gameInfo.moves.length - 1)}
+                                        />
+                                    )}
                                     {selectedMove && (
                                         <div className="mt-4 flex gap-2">
                                             <Button onClick={handleConfirm} className="bg-green-600 hover:bg-green-700">
