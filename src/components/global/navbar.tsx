@@ -120,9 +120,10 @@ const Navbar: React.FC<NavbarProps> = ({ session }) => {
     };
 
     return (
-        <nav className="fixed top-0 left-0 w-full z-50 bg-white dark:bg-[#27272A] shadow">
+        <nav className="fixed top-0 left-0 w-full z-50 bg-white dark:bg-[#27272A] shadow "
+            style={{ height: 'var(--navbar-height)' }}>
             {/* Container global */}
-            <div className="container mx-auto flex items-center justify-between py-4 px-6 ">
+            <div className="container mx-auto flex items-center justify-between py-4 px-6 h-[84px]">
 
                 {/* Logo + Menu Desktop */}
                 <div className="flex items-center space-x-8">

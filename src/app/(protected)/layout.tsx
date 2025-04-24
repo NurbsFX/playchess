@@ -13,7 +13,9 @@ export default async function AuthLayout({
 
     return (
         <div >
-            {children}
+            <main className="mt-[var(--navbar-height)]">
+                {children}
+            </main>
         </div>
     )
 }

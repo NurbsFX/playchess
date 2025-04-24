@@ -216,4 +216,34 @@ export async function playMove(gameId: string, from: string, to: string) {
     return { success: true }
 }
 
+export async function getUserGames() {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.email) throw new Error('Non autorisé');
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+    });
+
+    if (!user) throw new Error('Utilisateur introuvable');
+
+    const games = await prisma.game.findMany({
+        where: {
+            OR: [
+                { playerWhiteId: user.id },
+                { playerBlackId: user.id },
+            ],
+        },
+        include: {
+            playerWhite: true,
+            playerBlack: true,
+            moves: {
+                orderBy: { moveNumber: 'asc' },
+            },
+        },
+        orderBy: { updatedAt: 'desc' },
+    });
+
+    return games;
+}
+
 // Tu peux en ajouter autant que tu veux ici…
