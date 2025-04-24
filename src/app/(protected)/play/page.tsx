@@ -212,9 +212,9 @@ export default function PlayPage() {
                     </p>
 
                     {isPlayerTurn() ? (
-                      <p className="text-lg text-green-600 font-semibold">C'est à vous de jouer !</p>
+                      <p className="text-lg text-green-600 font-semibold">C&apos;est à vous de jouer !</p>
                     ) : (
-                      <p className="text-sm text-muted-foreground">En attente du coup de l'adversaire...</p>
+                      <p className="text-sm text-muted-foreground">En attente du coup de l&pos;adversaire...</p>
                     )}
                   </div>
                   {selectedMove && (
