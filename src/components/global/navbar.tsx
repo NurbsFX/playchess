@@ -153,7 +153,7 @@ const Navbar: React.FC<NavbarProps> = ({ session }) => {
                                                 <NavigationMenuLink asChild>
                                                     <Link
                                                         className="relative z-10 flex h-full w-full select-none flex-col justify-end p-6 no-underline outline-none focus:shadow-md bg-transparent hover:bg-transparent active:bg-transparent"
-                                                        href="/"
+                                                        href="/mygames"
                                                     >
                                                         <div className="relative z-30 mb-2 mt-4 text-lg font-bold text-white">
                                                             Mes parties

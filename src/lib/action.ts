@@ -246,4 +246,124 @@ export async function getUserGames() {
     return games;
 }
 
+export async function getAllGamesForCurrentUser() {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.email) throw new Error('Non autorisé')
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+    })
+    if (!user) throw new Error('Utilisateur introuvable')
+
+    const games = await prisma.game.findMany({
+        where: {
+            OR: [
+                { playerWhiteId: user.id },
+                { playerBlackId: user.id },
+            ],
+        },
+        orderBy: {
+            updatedAt: 'desc',
+        },
+        include: {
+            playerWhite: {
+                select: {
+                    id: true,
+                    name: true,
+                    userDetails: { select: { username: true } },
+                    image: true,
+                },
+            },
+            playerBlack: {
+                select: {
+                    id: true,
+                    name: true,
+                    userDetails: { select: { username: true } },
+                    image: true,
+                },
+            },
+            moves: {
+                orderBy: { moveNumber: 'asc' },
+            },
+        },
+    })
+
+    return games.map((game) => ({
+        id: game.id,
+        fen: game.moves.length > 0
+            ? game.moves[game.moves.length - 1].fen
+            : 'start',
+        whitePlayer: {
+            id: game.playerWhite.id,
+            name: game.playerWhite.name,
+            username: game.playerWhite.userDetails?.username || 'inconnu',
+            avatar: game.playerWhite.image || '',
+        },
+        blackPlayer: {
+            id: game.playerBlack.id,
+            name: game.playerBlack.name,
+            username: game.playerBlack.userDetails?.username || 'inconnu',
+            avatar: game.playerBlack.image || '',
+        },
+    }))
+}
+
+export async function getGameById(gameId: string) {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.email) throw new Error('Non autorisé')
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+    })
+    if (!user) throw new Error('Utilisateur introuvable')
+
+    const game = await prisma.game.findUnique({
+        where: { id: gameId },
+        include: {
+            moves: {
+                orderBy: { moveNumber: 'asc' },
+            },
+            playerWhite: {
+                select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                    userDetails: { select: { username: true } },
+                },
+            },
+            playerBlack: {
+                select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                    userDetails: { select: { username: true } },
+                },
+            },
+        },
+    })
+
+    if (!game) throw new Error('Partie non trouvée')
+
+    return {
+        id: game.id,
+        fen:
+            game.moves.length > 0
+                ? game.moves[game.moves.length - 1].fen
+                : 'start',
+        moves: game.moves,
+        playerWhite: {
+            id: game.playerWhite.id,
+            name: game.playerWhite.name,
+            avatar: game.playerWhite.image ?? '',
+            username: game.playerWhite.userDetails?.username ?? 'inconnu',
+        },
+        playerBlack: {
+            id: game.playerBlack.id,
+            name: game.playerBlack.name,
+            avatar: game.playerBlack.image ?? '',
+            username: game.playerBlack.userDetails?.username ?? 'inconnu',
+        },
+    }
+}
+
 // Tu peux en ajouter autant que tu veux ici…
