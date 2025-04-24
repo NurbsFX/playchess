@@ -203,18 +203,19 @@ export default function PlayPage() {
                       }}
                     />
                   </div>
-                  <div className="mt-4 text-center">
-                    <p className="text-lg font-medium">
-                      Au tour des{' '}
+                  <div className="mt-4 text-center space-y-2">
+                    <p>
+                      C&apos;est au tour des{' '}
                       <Badge variant={chess.turn() === 'w' ? 'outline' : 'default'}>
                         {chess.turn() === 'w' ? 'Blancs' : 'Noirs'}
                       </Badge>
-                      {!isPlayerTurn() && (
-                        <span className="block text-sm text-muted-foreground mt-2">
-                          En attente du coup de l&apos;adversaire
-                        </span>
-                      )}
                     </p>
+
+                    {isPlayerTurn() ? (
+                      <p className="text-lg text-green-600 font-semibold">C'est à vous de jouer !</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">En attente du coup de l'adversaire...</p>
+                    )}
                   </div>
                   {selectedMove && (
                     <div className="mt-4 flex gap-2">
