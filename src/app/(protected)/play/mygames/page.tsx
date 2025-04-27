@@ -29,7 +29,7 @@ export default async function GamesPage() {
                 <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     {row.map((game) => (
                         <Link
-                            href={`/mygames/${game.id}`}
+                            href={`/play/mygames/${game.id}`}
                             key={game.id}
                             className="block hover:scale-[1.01] transition-transform"
                         >
