@@ -1,4 +1,4 @@
-import { User, Pencil, Trophy, Mail, Settings } from "lucide-react"
+import { User, Trophy } from "lucide-react"
 
 import {
     Sidebar,
@@ -15,28 +15,13 @@ import {
 const profileItems = [
     {
         title: "Mon profil",
-        url: "/profile",
+        url: "/account/myprofile",
         icon: User,
-    },
-    {
-        title: "Éditer le profil",
-        url: "/profile/edit",
-        icon: Pencil,
     },
     {
         title: "Mes parties",
         url: "/mygames",
         icon: Trophy,
-    },
-    {
-        title: "Mes invitations",
-        url: "/invitations",
-        icon: Mail,
-    },
-    {
-        title: "Paramètres",
-        url: "/settings",
-        icon: Settings,
     },
 ]
 

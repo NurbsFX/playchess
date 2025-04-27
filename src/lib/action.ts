@@ -366,4 +366,73 @@ export async function getGameById(gameId: string) {
     }
 }
 
-// Tu peux en ajouter autant que tu veux ici…
+export async function updateUserProfile({
+    username,
+    name,
+    email,
+    bio,
+}: {
+    username: string;
+    name: string;
+    email: string;
+    bio: string;
+}) {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.email) throw new Error('Non autorisé');
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        include: {
+            userDetails: true,
+        },
+    });
+
+    if (!user) throw new Error('Utilisateur introuvable');
+
+    // Update des informations dans user + userDetails
+    await prisma.$transaction([
+        prisma.user.update({
+            where: { id: user.id },
+            data: {
+                name,
+                email,
+            },
+        }),
+        prisma.userDetails.upsert({
+            where: { userId: user.id },
+            update: {
+                username,
+                bio,
+            },
+            create: {
+                userId: user.id,
+                username,
+                bio,
+            },
+        }),
+    ]);
+
+    return { success: true };
+}
+
+export async function getCurrentUserProfile() {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.email) throw new Error('Non autorisé');
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        include: {
+            userDetails: true,
+        },
+    });
+
+    if (!user) throw new Error('Utilisateur introuvable');
+
+    return {
+        username: user.userDetails?.username || '',
+        name: user.name || '',
+        email: user.email || '',
+        bio: user.userDetails?.bio || '',
+        joinedAt: user.createdAt?.toISOString() ?? null,
+    };
+}
