@@ -380,32 +380,45 @@ export async function updateUserProfile({
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user?.email) throw new Error('Non autorisé');
 
-    const user = await prisma.user.findUnique({
+    const currentUser = await prisma.user.findUnique({
         where: { email: session.user.email },
-        include: {
-            userDetails: true,
-        },
+        include: { userDetails: true },
     });
 
-    if (!user) throw new Error('Utilisateur introuvable');
+    if (!currentUser) throw new Error('Utilisateur introuvable');
 
-    // Update des informations dans user + userDetails
+    // Vérifier si l'email est utilisé par un autre utilisateur
+    if (email !== currentUser.email) {
+        const existingEmail = await prisma.user.findUnique({
+            where: { email },
+        });
+        if (existingEmail) throw new Error('Cet email est déjà utilisé.');
+    }
+
+    // Vérifier si le username est utilisé par un autre utilisateur
+    if (username !== currentUser.userDetails?.username) {
+        const existingUsername = await prisma.userDetails.findFirst({
+            where: { username },
+        });
+        if (existingUsername) throw new Error('Ce nom d\'utilisateur est déjà pris.');
+    }
+
     await prisma.$transaction([
         prisma.user.update({
-            where: { id: user.id },
+            where: { id: currentUser.id },
             data: {
                 name,
                 email,
             },
         }),
         prisma.userDetails.upsert({
-            where: { userId: user.id },
+            where: { userId: currentUser.id },
             update: {
                 username,
                 bio,
             },
             create: {
-                userId: user.id,
+                userId: currentUser.id,
                 username,
                 bio,
             },
