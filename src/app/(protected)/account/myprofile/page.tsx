@@ -21,7 +21,6 @@ import {
 export default function ProfilePage() {
     const [editingField, setEditingField] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
-    const [session, setSession] = useState<{ user?: { name: string; email: string } } | null>(null);
 
     const [profile, setProfile] = useState<{
         username: string;
@@ -30,13 +29,12 @@ export default function ProfilePage() {
         joinedAt: string | null;
         bio: string;
         flag: string;
+        image: string;
     } | null>(null);
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const sessionData = await fetchSession();
-                setSession(sessionData);
                 const fullProfile = await getFullCurrentUserProfile();
                 setProfile({
                     username: fullProfile.username,
@@ -45,6 +43,7 @@ export default function ProfilePage() {
                     joinedAt: fullProfile.createdAt,
                     bio: fullProfile.bio,
                     flag: fullProfile.flag,
+                    image: fullProfile.image ?? "", // <-- Ajout ici
                 });
             } catch (error) {
                 console.error(error);
@@ -72,6 +71,7 @@ export default function ProfilePage() {
                     email: profile.email,
                     bio: profile.bio,
                     flag: profile.flag ?? "",
+                    image: profile.image,
                 });
                 toast.success("Profil mis à jour !");
                 setEditingField(null);
@@ -90,35 +90,109 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center max-w-3xl mx-auto p-6">
             <div className="flex items-start gap-6 w-full">
                 {/* Avatar */}
-                <Avatar className="h-24 w-24">
-                    <AvatarImage src="" alt={session?.user?.name || "Avatar"} />
-                    <AvatarFallback>
-                        {session?.user?.name?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                </Avatar>
+                <div className="flex flex-col items-center gap-2">
+                    {/* Avatar */}
+                    <div className="flex flex-col items-center gap-2">
+                        {/* Avatar */}
+                        <Avatar className="h-24 w-24">
+                            <AvatarImage
+                                src={profile?.image || ""}
+                                alt={profile?.name || "Avatar"}
+                            />
+                            <AvatarFallback>
+                                {profile?.name
+                                    ?.split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .slice(0, 2)
+                                    .toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+
+                        {/* Modifier l'image */}
+                        {editingField === "image" ? (
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                            const base64String = reader.result as string;
+                                            handleChange("image", base64String); // on enregistre l'image encodée
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+                                }}
+                                className="mt-2 w-40 text-xs"
+                            />
+                        ) : (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingField("image")}
+                                className="mt-2 text-xs text-gray-500 hover:text-black"
+                            >
+                                Modifier l&apos;image
+                            </Button>
+                        )}
+                    </div>
+                </div>
 
                 {/* Infos */}
                 <div className="flex flex-col justify-start gap-4 w-full">
                     {/* Flag + Nom */}
                     <div className="flex items-center gap-2">
+                        {/* Flag */}
                         {editingField === "flag" ? (
-                            <Select value={profile.flag} onValueChange={(value) => handleChange("flag", value)}>
+                            <Select
+                                value={profile.flag}
+                                onValueChange={(value) => handleChange("flag", value)}
+                            >
                                 <SelectTrigger className="w-[80px] text-2xl text-center">
                                     <SelectValue>{profile.flag}</SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
-                                        <SelectLabel>Drapeau</SelectLabel>
-                                        {["🇫🇷", "🇺🇸", "🇪🇸", "🇩🇪", "🇮🇹", "🇯🇵", "🇨🇦", "🇧🇷"].map((flag) => (
-                                            <SelectItem key={flag} value={flag}>{flag}</SelectItem>
+                                        <SelectLabel>Choisir un drapeau</SelectLabel>
+                                        {Array.from(new Set([
+                                            "🇦🇫", "🇦🇽", "🇦🇱", "🇩🇿", "🇦🇸", "🇦🇩", "🇦🇴", "🇦🇮", "🇦🇶", "🇦🇬", "🇦🇷", "🇦🇲", "🇦🇼", "🇦🇺", "🇦🇹", "🇦🇿",
+                                            "🇧🇸", "🇧🇭", "🇧🇩", "🇧🇧", "🇧🇾", "🇧🇪", "🇧🇿", "🇧🇯", "🇧🇲", "🇧🇹", "🇧🇴", "🇧🇦", "🇧🇼", "🇧🇻", "🇧🇷", "🇮🇴",
+                                            "🇻🇬", "🇧🇳", "🇧🇬", "🇧🇫", "🇧🇮", "🇰🇭", "🇨🇲", "🇨🇦", "🇨🇻", "🇰🇾", "🇨🇫", "🇹🇩", "🇨🇱", "🇨🇳", "🇨🇽", "🇨🇨",
+                                            "🇨🇴", "🇰🇲", "🇨🇬", "🇨🇩", "🇨🇰", "🇨🇷", "🇭🇷", "🇨🇺", "🇨🇼", "🇨🇾", "🇨🇿", "🇩🇰", "🇩🇯", "🇩🇲", "🇩🇴", "🇪🇨",
+                                            "🇪🇬", "🇸🇻", "🇬🇶", "🇪🇷", "🇪🇪", "🇪🇹", "🇫🇰", "🇫🇴", "🇫🇯", "🇫🇮", "🇫🇷", "🇬🇫", "🇵🇫", "🇹🇫", "🇬🇦", "🇬🇲",
+                                            "🇬🇪", "🇩🇪", "🇬🇭", "🇬🇮", "🇬🇷", "🇬🇱", "🇬🇩", "🇬🇵", "🇬🇺", "🇬🇹", "🇬🇬", "🇬🇳", "🇬🇼", "🇬🇾", "🇭🇹", "🇭🇲",
+                                            "🇻🇦", "🇭🇳", "🇭🇰", "🇭🇺", "🇮🇸", "🇮🇳", "🇮🇩", "🇮🇷", "🇮🇶", "🇮🇪", "🇮🇲", "🇮🇱", "🇮🇹", "🇨🇮", "🇯🇲", "🇯🇵",
+                                            "🇯🇪", "🇯🇴", "🇰🇿", "🇰🇪", "🇰🇮", "🇽🇰", "🇰🇼", "🇰🇬", "🇱🇦", "🇱🇻", "🇱🇧", "🇱🇸", "🇱🇷", "🇱🇾", "🇱🇮", "🇱🇹",
+                                            "🇱🇺", "🇲🇴", "🇲🇰", "🇲🇬", "🇲🇼", "🇲🇾", "🇲🇻", "🇲🇱", "🇲🇹", "🇲🇭", "🇲🇶", "🇲🇷", "🇲🇺", "🇾🇹", "🇲🇽", "🇫🇲",
+                                            "🇲🇩", "🇲🇨", "🇲🇳", "🇲🇪", "🇲🇸", "🇲🇦", "🇲🇿", "🇲🇲", "🇳🇦", "🇳🇷", "🇳🇵", "🇳🇱", "🇳🇨", "🇳🇿", "🇳🇮", "🇳🇪",
+                                            "🇳🇬", "🇳🇺", "🇳🇫", "🇰🇵", "🇲🇵", "🇳🇴", "🇴🇲", "🇵🇰", "🇵🇼", "🇵🇸", "🇵🇦", "🇵🇬", "🇵🇾", "🇵🇪", "🇵🇭", "🇵🇳",
+                                            "🇵🇱", "🇵🇹", "🇵🇷", "🇶🇦", "🇷🇪", "🇷🇴", "🇷🇺", "🇷🇼", "🇧🇱", "🇸🇭", "🇰🇳", "🇱🇨", "🇲🇫", "🇻🇨", "🇼🇸", "🇸🇲",
+                                            "🇸🇹", "🇸🇦", "🇸🇳", "🇷🇸", "🇸🇨", "🇸🇱", "🇸🇬", "🇸🇽", "🇸🇰", "🇸🇮", "🇸🇧", "🇸🇴", "🇿🇦", "🇬🇸", "🇰🇷", "🇸🇸",
+                                            "🇪🇸", "🇱🇰", "🇸🇩", "🇸🇷", "🇸🇯", "🇸🇪", "🇨🇭", "🇸🇾", "🇹🇼", "🇹🇯", "🇹🇿", "🇹🇭", "🇹🇱", "🇹🇬", "🇹🇰", "🇹🇴",
+                                            "🇹🇹", "🇹🇳", "🇹🇷", "🇹🇲", "🇹🇨", "🇹🇻", "🇺🇬", "🇺🇦", "🇦🇪", "🇬🇧", "🇺🇸", "🇺🇾", "🇺🇿", "🇻🇺", "🇻🇪", "🇻🇳",
+                                            "🇼🇫", "🇪🇭", "🇾🇪", "🇿🇲", "🇿🇼"
+                                        ])).map((flag) => (
+                                            <SelectItem key={flag} value={flag}>
+                                                {flag}
+                                            </SelectItem>
                                         ))}
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
                         ) : (
-                            <span className="text-2xl">{profile.flag}</span>
+                            <div className="flex items-center gap-1">
+                                <span className="text-2xl">{profile.flag}</span>
+                                <Pencil
+                                    size={16}
+                                    className="cursor-pointer text-gray-400"
+                                    onClick={() => setEditingField(editingField === "flag" ? null : "flag")}
+                                />
+                            </div>
                         )}
 
+                        {/* Name */}
                         {editingField === "name" ? (
                             <Input
                                 value={profile.name}
@@ -126,14 +200,15 @@ export default function ProfilePage() {
                                 className="text-2xl font-bold w-fit"
                             />
                         ) : (
-                            <h1 className="text-2xl font-bold">{profile.name}</h1>
+                            <div className="flex items-center gap-1">
+                                <h1 className="text-2xl font-bold">{profile.name}</h1>
+                                <Pencil
+                                    size={16}
+                                    className="cursor-pointer text-gray-400"
+                                    onClick={() => setEditingField(editingField === "name" ? null : "name")}
+                                />
+                            </div>
                         )}
-
-                        <Pencil
-                            size={16}
-                            className="cursor-pointer text-gray-400"
-                            onClick={() => setEditingField(editingField === "name" ? null : "name")}
-                        />
                     </div>
 
                     {/* Username */}
@@ -204,9 +279,4 @@ export default function ProfilePage() {
             )}
         </div>
     );
-}
-
-// Simule une session temporaire
-async function fetchSession() {
-    return { user: { name: "Bruno Kalfa", email: "bruno@example.com" } };
 }

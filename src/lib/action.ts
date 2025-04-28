@@ -372,12 +372,14 @@ export async function updateUserProfile({
     email,
     flag,
     bio,
+    image,
 }: {
     username: string;
     name: string;
     email: string;
     flag: string;
     bio: string;
+    image: string;
 }) {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user?.email) throw new Error('Non autorisé');
@@ -411,6 +413,7 @@ export async function updateUserProfile({
             data: {
                 name,
                 email,
+                image,
             },
         }),
         prisma.userDetails.upsert({

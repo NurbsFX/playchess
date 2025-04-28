@@ -38,6 +38,7 @@ type Session = {
         id: string;
         email: string;
         name?: string;
+        image?: string;
     };
 } | null;
 
@@ -250,11 +251,11 @@ const Navbar: React.FC<NavbarProps> = ({ session }) => {
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Avatar className="h-9 w-9 cursor-pointer">
-                                                <AvatarImage src="" alt={session.user?.name || "Avatar"} />
+                                                <AvatarImage src={session.user?.image || ""} alt={session.user?.name || "Avatar"} />
                                                 <AvatarFallback>
                                                     {session.user?.name
                                                         ?.split(" ")
-                                                        .map(n => n[0])
+                                                        .map((n) => n[0])
                                                         .join("")
                                                         .slice(0, 2)
                                                         .toUpperCase()}
