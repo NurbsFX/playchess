@@ -151,6 +151,7 @@ model UserDetails {
   userId     String   @unique
   username   String   @unique
   country    String?  // Optional: user country
+  flag       String?  // <- Ajout de cette ligne pour le drapeau
   bio        String?  // Optional: short biography
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

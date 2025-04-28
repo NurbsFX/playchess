@@ -265,13 +265,17 @@ const Navbar: React.FC<NavbarProps> = ({ session }) => {
                                             <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuGroup>
-                                                <DropdownMenuItem>
-                                                    Profil
-                                                    <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                                                <DropdownMenuItem asChild>
+                                                    <Link href="/account/myprofile">
+                                                        Profil
+                                                        <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                                                    </Link>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                    Paramètres
-                                                    <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                                                <DropdownMenuItem asChild>
+                                                    <Link href="/settings">
+                                                        Paramètres
+                                                        <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                                                    </Link>
                                                 </DropdownMenuItem>
                                             </DropdownMenuGroup>
                                             <DropdownMenuSeparator />

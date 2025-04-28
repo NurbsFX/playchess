@@ -5,11 +5,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { updateUserProfile, getCurrentUserProfile } from "@/lib/action"; // <-- on importe aussi getCurrentUserProfile
+import { updateUserProfile, getFullCurrentUserProfile } from "@/lib/action";
 import { toast } from "sonner";
+import { Mail, Pencil } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 export default function ProfilePage() {
-    const [isEditing, setIsEditing] = useState(false);
+    const [editingField, setEditingField] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
     const [session, setSession] = useState<{ user?: { name: string; email: string } } | null>(null);
 
@@ -19,6 +29,7 @@ export default function ProfilePage() {
         email: string;
         joinedAt: string | null;
         bio: string;
+        flag: string;
     } | null>(null);
 
     useEffect(() => {
@@ -26,14 +37,14 @@ export default function ProfilePage() {
             try {
                 const sessionData = await fetchSession();
                 setSession(sessionData);
-
-                const userProfile = await getCurrentUserProfile();
+                const fullProfile = await getFullCurrentUserProfile();
                 setProfile({
-                    username: userProfile.username,
-                    name: userProfile.name,
-                    email: userProfile.email,
-                    joinedAt: userProfile.joinedAt,
-                    bio: userProfile.bio,
+                    username: fullProfile.username,
+                    name: fullProfile.name,
+                    email: fullProfile.email,
+                    joinedAt: fullProfile.createdAt,
+                    bio: fullProfile.bio,
+                    flag: fullProfile.flag,
                 });
             } catch (error) {
                 console.error(error);
@@ -60,132 +71,142 @@ export default function ProfilePage() {
                     name: profile.name,
                     email: profile.email,
                     bio: profile.bio,
+                    flag: profile.flag ?? "",
                 });
-                toast.success("Profil mis à jour avec succès !");
-                setIsEditing(false);
+                toast.success("Profil mis à jour !");
+                setEditingField(null);
             } catch (error) {
                 console.error(error);
-                toast.error("Erreur lors de la mise à jour du profil.");
+                toast.error("Erreur lors de la sauvegarde.");
             }
         });
     };
 
     if (!profile) {
-        return <div className="flex justify-center items-center h-64">Chargement du profil...</div>;
+        return <div className="flex justify-center items-center h-64">Chargement...</div>;
     }
 
     return (
         <div className="flex flex-col items-center max-w-3xl mx-auto p-6">
             <div className="flex items-start gap-6 w-full">
-                {/* Avatar à gauche */}
+                {/* Avatar */}
                 <Avatar className="h-24 w-24">
                     <AvatarImage src="" alt={session?.user?.name || "Avatar"} />
                     <AvatarFallback>
-                        {session?.user?.name
-                            ?.split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .slice(0, 2)
-                            .toUpperCase()}
+                        {session?.user?.name?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                 </Avatar>
 
-                {/* Infos à droite */}
+                {/* Infos */}
                 <div className="flex flex-col justify-start gap-4 w-full">
-                    {/* Première ligne : Flag + Nom */}
+                    {/* Flag + Nom */}
                     <div className="flex items-center gap-2">
-                        {isEditing ? (
-                            <>
-                                <Input
-                                    value={profile.name}
-                                    onChange={(e) => handleChange("name", e.target.value)}
-                                    className="text-2xl font-bold"
-                                />
-                            </>
+                        {editingField === "flag" ? (
+                            <Select value={profile.flag} onValueChange={(value) => handleChange("flag", value)}>
+                                <SelectTrigger className="w-[80px] text-2xl text-center">
+                                    <SelectValue>{profile.flag}</SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Drapeau</SelectLabel>
+                                        {["🇫🇷", "🇺🇸", "🇪🇸", "🇩🇪", "🇮🇹", "🇯🇵", "🇨🇦", "🇧🇷"].map((flag) => (
+                                            <SelectItem key={flag} value={flag}>{flag}</SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         ) : (
-                            <>
-                                <h1 className="text-2xl font-bold">{profile.name}</h1>
-                            </>
+                            <span className="text-2xl">{profile.flag}</span>
                         )}
+
+                        {editingField === "name" ? (
+                            <Input
+                                value={profile.name}
+                                onChange={(e) => handleChange("name", e.target.value)}
+                                className="text-2xl font-bold w-fit"
+                            />
+                        ) : (
+                            <h1 className="text-2xl font-bold">{profile.name}</h1>
+                        )}
+
+                        <Pencil
+                            size={16}
+                            className="cursor-pointer text-gray-400"
+                            onClick={() => setEditingField(editingField === "name" ? null : "name")}
+                        />
                     </div>
 
-                    {/* Deuxième ligne : Username */}
-                    <div>
-                        {isEditing ? (
+                    {/* Username */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-gray-600 text-base">@</span>
+                        {editingField === "username" ? (
                             <Input
                                 value={profile.username}
                                 onChange={(e) => handleChange("username", e.target.value)}
-                                className="text-lg"
+                                className="text-base w-fit"
                             />
                         ) : (
-                            <p className="text-gray-600 text-lg">@{profile.username}</p>
+                            <p className="text-gray-600 text-base">{profile.username}</p>
                         )}
+                        <Pencil
+                            size={16}
+                            className="cursor-pointer text-gray-400"
+                            onClick={() => setEditingField(editingField === "username" ? null : "username")}
+                        />
                     </div>
 
-                    {/* Troisième ligne : Email */}
-                    <div>
-                        {isEditing ? (
-                            <Input
-                                type="email"
-                                value={profile.email}
-                                onChange={(e) => handleChange("email", e.target.value)}
-                            />
-                        ) : (
-                            <p className="text-gray-600">{profile.email}</p>
-                        )}
+                    {/* Email */}
+                    <div className="flex items-center gap-2 text-gray-600">
+                        <Mail className="h-5 w-5" />
+                        <p className="text-sm">{profile.email}</p>
                     </div>
                 </div>
             </div>
 
-            {/* Quatrième ligne : Bio */}
+            {/* Bio */}
             <div className="mt-6 w-full">
                 <label className="text-sm font-medium text-gray-700">Bio :</label>
-                {isEditing ? (
-                    <Textarea
-                        value={profile.bio}
-                        onChange={(e) => handleChange("bio", e.target.value)}
-                        className="mt-1"
+                <div className="flex gap-2 items-start">
+                    {editingField === "bio" ? (
+                        <Textarea
+                            value={profile.bio}
+                            onChange={(e) => handleChange("bio", e.target.value)}
+                            className="mt-1"
+                        />
+                    ) : (
+                        <p className="text-gray-700 whitespace-pre-line mt-1">{profile.bio}</p>
+                    )}
+                    <Pencil
+                        size={16}
+                        className="cursor-pointer text-gray-400"
+                        onClick={() => setEditingField(editingField === "bio" ? null : "bio")}
                     />
-                ) : (
-                    <p className="text-gray-700 whitespace-pre-line mt-1">{profile.bio}</p>
-                )}
+                </div>
             </div>
 
-            <div className="flex gap-4 mt-8">
-                {isEditing ? (
-                    <>
-                        <Button
-                            onClick={handleSave}
-                            disabled={isPending}
-                        >
-                            {isPending ? "Enregistrement..." : "Sauvegarder"}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsEditing(false)}
-                            disabled={isPending}
-                        >
-                            Annuler
-                        </Button>
-                    </>
-                ) : (
+            {/* Save button uniquement si un champ est en cours d'édition */}
+            {editingField && (
+                <div className="flex justify-center gap-4 mt-8 w-full">
                     <Button
-                        onClick={() => setIsEditing(true)}
+                        variant="outline"
+                        onClick={() => setEditingField(null)}
+                        disabled={isPending}
                     >
-                        Modifier
+                        Annuler
                     </Button>
-                )}
-            </div>
+                    <Button
+                        onClick={handleSave}
+                        disabled={isPending}
+                    >
+                        {isPending ? "Enregistrement..." : "Sauvegarder"}
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
 
-// --- Fetch temporaire
+// Simule une session temporaire
 async function fetchSession() {
-    return {
-        user: {
-            name: "Bruno Kalfa",
-            email: "bruno@example.com",
-        },
-    };
+    return { user: { name: "Bruno Kalfa", email: "bruno@example.com" } };
 }

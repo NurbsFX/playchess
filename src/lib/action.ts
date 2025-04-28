@@ -370,11 +370,13 @@ export async function updateUserProfile({
     username,
     name,
     email,
+    flag,
     bio,
 }: {
     username: string;
     name: string;
     email: string;
+    flag: string;
     bio: string;
 }) {
     const session = await auth.api.getSession({ headers: await headers() });
@@ -415,11 +417,13 @@ export async function updateUserProfile({
             where: { userId: currentUser.id },
             update: {
                 username,
+                flag,
                 bio,
             },
             create: {
                 userId: currentUser.id,
                 username,
+                flag,
                 bio,
             },
         }),
@@ -447,5 +451,30 @@ export async function getCurrentUserProfile() {
         email: user.email || '',
         bio: user.userDetails?.bio || '',
         joinedAt: user.createdAt?.toISOString() ?? null,
+    };
+}
+export async function getFullCurrentUserProfile() {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.email) throw new Error('Non autorisé');
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        include: {
+            userDetails: true,
+        },
+    });
+
+    if (!user) throw new Error('Utilisateur introuvable');
+
+    return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+        username: user.userDetails?.username || '',
+        bio: user.userDetails?.bio || '',
+        flag: user.userDetails?.flag || '🏳️', // important pour le problème du drapeau
     };
 }
