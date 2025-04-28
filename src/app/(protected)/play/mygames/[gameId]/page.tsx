@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { Chess, Square } from 'chess.js'
 import GameBoard from '@/components/items/gameboard'
 import MoveNavigator from '@/components/items/movenavigator'
-import { getGameById, getCurrentUserId, playMove } from '@/lib/action'
+import { getGameById, getCurrentUserId, playMove, getUserProfileById } from '@/lib/action'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -106,35 +106,88 @@ export default function GamePage() {
         setPreviewFen(null)
     }
 
-    const renderPlayer = (
-        color: 'white' | 'black',
-        player: { id: string; name: string; image?: string | null } | null
-    ) => (
-        <Card className="mb-4">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${color === 'white' ? 'bg-white border' : 'bg-black'}`} />
-                    {color === 'white' ? 'Joueur blanc' : 'Joueur noir'}
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                {loading ? (
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                ) : (
-                    <div className="flex items-center gap-4">
-                        <Avatar>
-                            <AvatarImage src={player?.image || ''} />
-                            <AvatarFallback>{player?.name?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                            <span className="font-semibold">{player?.name}</span>
-                            {player?.id === currentUserId && <Badge variant="outline">Vous</Badge>}
+    function PlayerCard({
+        color,
+        player,
+        currentUserId,
+    }: {
+        color: 'white' | 'black';
+        player: { id: string; name: string; image?: string | null } | null;
+        currentUserId: string | null;
+    }) {
+        const [playerProfile, setPlayerProfile] = useState<{
+            id: string;
+            name: string;
+            image?: string | null;
+            username: string;
+            flag: string;
+            bio: string;
+        } | null>(null);
+
+        const [loading, setLoading] = useState(true);
+
+        useEffect(() => {
+            async function fetchPlayerProfile() {
+                if (player?.id) {
+                    try {
+                        const data = await getUserProfileById(player.id);
+                        setPlayerProfile(data);
+                    } catch (error) {
+                        console.error('Erreur lors du chargement du profil joueur :', error);
+                    } finally {
+                        setLoading(false);
+                    }
+                }
+            }
+            fetchPlayerProfile();
+        }, [player?.id]);
+
+        return (
+            <Card className="mb-4">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${color === 'white' ? 'bg-white border' : 'bg-black'}`} />
+                        {color === 'white' ? 'Joueur blanc' : 'Joueur noir'}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {loading || !playerProfile ? (
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                    ) : (
+                        <div className="flex items-center gap-4">
+                            {/* Avatar */}
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src={playerProfile.image || ""} alt={playerProfile.name || "Avatar"} />
+                                <AvatarFallback>
+                                    {playerProfile.name
+                                        ?.split(" ")
+                                        .map((n) => n[0])
+                                        .join("")
+                                        .slice(0, 2)
+                                        .toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+
+                            {/* Infos joueur */}
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xl">{playerProfile.flag}</span>
+                                    <span className="font-semibold">{playerProfile.name}</span>
+                                </div>
+                                <span className="text-gray-500 text-sm">@{playerProfile.username}</span>
+
+                                {playerProfile.id === currentUserId && (
+                                    <Badge variant="outline" className="mt-1 w-fit">
+                                        Vous
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
-    )
+                    )}
+                </CardContent>
+            </Card>
+        );
+    }
 
     const displayedFen = useMemo(() => {
         if (!gameInfo) return 'start'
@@ -151,8 +204,8 @@ export default function GamePage() {
             <h1 className="text-3xl font-bold mb-8 text-center">Partie</h1>
             <div className="grid grid-cols-1 md:grid-cols-[250px_1fr_300px] gap-6">
                 <div>
-                    {renderPlayer('white', gameInfo?.playerWhite ?? null)}
-                    {renderPlayer('black', gameInfo?.playerBlack ?? null)}
+                    <PlayerCard color="white" player={gameInfo?.playerWhite ?? null} currentUserId={currentUserId} />
+                    <PlayerCard color="black" player={gameInfo?.playerBlack ?? null} currentUserId={currentUserId} />
                 </div>
                 <div className="space-y-6">
                     <Card>

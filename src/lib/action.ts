@@ -456,6 +456,7 @@ export async function getCurrentUserProfile() {
         joinedAt: user.createdAt?.toISOString() ?? null,
     };
 }
+
 export async function getFullCurrentUserProfile() {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user?.email) throw new Error('Non autorisé');
@@ -480,4 +481,45 @@ export async function getFullCurrentUserProfile() {
         bio: user.userDetails?.bio || '',
         flag: user.userDetails?.flag || '🏳️', // important pour le problème du drapeau
     };
+}
+
+export async function getUserProfileById(userId: string) {
+    if (!userId) throw new Error('ID utilisateur invalide');
+
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+            userDetails: true,
+        },
+    });
+
+    if (!user) throw new Error('Utilisateur introuvable');
+
+    return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+        username: user.userDetails?.username || '',
+        bio: user.userDetails?.bio || '',
+        flag: user.userDetails?.flag || '🏳️', // le drapeau par défaut si manquant
+    };
+}
+
+export async function updateElo(playerRating: number, opponentRating: number, result: number, K: number = 32): Promise<number> {
+    if (
+        typeof playerRating !== 'number' ||
+        typeof opponentRating !== 'number' ||
+        typeof result !== 'number' ||
+        (result !== 0 && result !== 0.5 && result !== 1)
+    ) {
+        throw new Error('Invalid input');
+    }
+
+    const expectedScore = 1 / (1 + Math.pow(10, (opponentRating - playerRating) / 400));
+    const newRating = playerRating + K * (result - expectedScore);
+
+    return Math.round(newRating);
 }

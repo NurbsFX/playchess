@@ -132,7 +132,7 @@ export default function ProfilePage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setEditingField("image")}
-                                className="mt-2 text-xs text-gray-500 hover:text-black"
+                                className="mt-2 text-xs text-gray-500 dark:text-white  hover:text-black"
                             >
                                 Modifier l&apos;image
                             </Button>
@@ -213,7 +213,7 @@ export default function ProfilePage() {
 
                     {/* Username */}
                     <div className="flex items-center gap-2">
-                        <span className="text-gray-600 text-base">@</span>
+                        <span className="text-gray-600 dark:text-white text-base">@</span>
                         {editingField === "username" ? (
                             <Input
                                 value={profile.username}
@@ -221,7 +221,7 @@ export default function ProfilePage() {
                                 className="text-base w-fit"
                             />
                         ) : (
-                            <p className="text-gray-600 text-base">{profile.username}</p>
+                            <p className="text-gray-600 dark:text-white  text-base">{profile.username}</p>
                         )}
                         <Pencil
                             size={16}
@@ -231,31 +231,43 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Email */}
-                    <div className="flex items-center gap-2 text-gray-600">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-white ">
                         <Mail className="h-5 w-5" />
-                        <p className="text-sm">{profile.email}</p>
+                        <p className="text-sm dark:text-white ">{profile.email}</p>
                     </div>
                 </div>
             </div>
 
             {/* Bio */}
-            <div className="mt-6 w-full">
-                <label className="text-sm font-medium text-gray-700">Bio :</label>
-                <div className="flex gap-2 items-start">
+            <div className="mt-6 w-full relative">
+                <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                    Bio
+                </label>
+
+                <div className="relative">
                     {editingField === "bio" ? (
                         <Textarea
                             value={profile.bio}
                             onChange={(e) => handleChange("bio", e.target.value)}
-                            className="mt-1"
+                            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#27272a] px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition resize-none"
+                            placeholder="Parlez-nous un peu de vous..."
+                            rows={4}
                         />
                     ) : (
-                        <p className="text-gray-700 whitespace-pre-line mt-1">{profile.bio}</p>
+                        <p className="w-full text-sm text-gray-700 dark:text-white whitespace-pre-line bg-gray-50 dark:bg-[#27272a] rounded-md px-3 py-2 min-h-[100px]">
+                            {profile.bio || "Aucune bio renseignée."}
+                        </p>
                     )}
-                    <Pencil
-                        size={16}
-                        className="cursor-pointer text-gray-400"
+
+                    {/* Pencil Button */}
+                    <button
+                        type="button"
                         onClick={() => setEditingField(editingField === "bio" ? null : "bio")}
-                    />
+                        className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                        aria-label="Modifier la bio"
+                    >
+                        <Pencil size={18} className="text-gray-500" />
+                    </button>
                 </div>
             </div>
 

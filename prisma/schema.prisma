@@ -91,6 +91,7 @@ model Game {
   moves       Move[]
   result      GameResult
   status      GameStatus @default(PENDING)
+  type        GameType   @default(DAILY) // <- Ajout ici du type de partie avec DAILY par défaut
   startedAt   DateTime?
   endedAt     DateTime?
 }
@@ -123,6 +124,13 @@ model RatingHistory {
   createdAt  DateTime @default(now())
 }
 
+enum GameType {
+  BULLET
+  BLITZ
+  RAPID
+  DAILY
+}
+
 enum GameResult {
   WHITE_WIN
   BLACK_WIN
@@ -146,13 +154,19 @@ enum InvitationStatus {
 }
 
 model UserDetails {
-  id         String   @id @default(uuid())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String   @unique
-  username   String   @unique
-  country    String?  // Optional: user country
-  flag       String?  // <- Ajout de cette ligne pour le drapeau
-  bio        String?  // Optional: short biography
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id              String   @id @default(uuid())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String   @unique
+  username        String   @unique
+  country         String?  // Optional: user country
+  flag            String?  // Optional: user flag
+  
+  bulletElo       Int      @default(1000) // <- Pour parties bullet
+  blitzElo        Int      @default(1000) // <- Pour parties blitz
+  rapidElo        Int      @default(1000) // <- Pour parties rapides
+  dailyElo        Int      @default(1000) // <- Pour parties quotidiennes
+
+  bio             String?  // Optional: short biography
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
