@@ -55,14 +55,14 @@ export function NotificationBell() {
               <li key={invitation.id} className="text-sm space-y-2">
                 <p>{invitation.sender.name} vous invite à jouer</p>
                 <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     onClick={() => handleAccept(invitation.id)}
                   >
                     Accepter
                   </Button>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => handleDecline(invitation.id)}
                   >

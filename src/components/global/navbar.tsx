@@ -301,7 +301,6 @@ const Navbar: React.FC<NavbarProps> = ({ session }) => {
                                     </Link>
                                 </div>
                         }
-
                     </div>
                 </div>
 

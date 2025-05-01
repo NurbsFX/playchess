@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { Toaster } from "@/components/ui/sonner";
 
 export default async function AuthLayout({
     children,
@@ -15,6 +16,7 @@ export default async function AuthLayout({
         <div >
             <main className="mt-[var(--navbar-height)]">
                 {children}
+                <Toaster />
             </main>
         </div>
     )

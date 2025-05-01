@@ -33,7 +33,7 @@ export default async function GamesPage() {
             <div className=" container mx-auto py-16 text-center h-screen ">
                 <p className="text-xl font-medium mb-6">Vous n’avez aucune partie en cours.</p>
                 <Link href="/play/versus">
-                    <Button size="lg" className="px-8">
+                    <Button size="lg" className="px-8 bg-[#6890C9] hover:bg-[#6890c9d8]">
                         Trouver un nouvel adversaire
                     </Button>
                 </Link>
