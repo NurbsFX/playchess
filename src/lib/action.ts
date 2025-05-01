@@ -5,7 +5,7 @@ import { PrismaClient, GameStatus, InvitationStatus, GameResult, User } from '@p
 import { auth } from '@/lib/auth'
 import { headers } from "next/headers";
 import { Chess } from 'chess.js'
-
+import { revalidatePath } from 'next/cache'
 
 const prisma = new PrismaClient()
 
@@ -45,6 +45,36 @@ export async function invitePlayer(receiverId: string) {
 type UserWithDetails = User & {
     userDetails: { username: string } | null;
     ratingHistories: { rating: number }[];
+}
+
+export interface GameData {
+    id: string
+    playerWhite: { id: string; name: string; image?: string | null }
+    playerBlack: { id: string; name: string; image?: string | null }
+    moves: { notation: string; fen: string; moveNumber: number }[]
+    status: GameStatus
+    result: GameResult
+    // … le reste si besoin
+}
+
+
+export interface UserGameSummary {
+    id: string
+    fen: string
+    whitePlayer: {
+        id: string
+        name: string
+        username: string
+        avatar: string
+    }
+    blackPlayer: {
+        id: string
+        name: string
+        username: string
+        avatar: string
+    }
+    status: GameStatus
+    result: GameResult
 }
 
 export async function getCurrentUserId() {
@@ -246,7 +276,7 @@ export async function getUserGames() {
     return games;
 }
 
-export async function getAllGamesForCurrentUser() {
+export async function getAllGamesForCurrentUser(): Promise<UserGameSummary[]> {
     const session = await auth.api.getSession({ headers: await headers() })
     if (!session?.user?.email) throw new Error('Non autorisé')
 
@@ -255,114 +285,91 @@ export async function getAllGamesForCurrentUser() {
     })
     if (!user) throw new Error('Utilisateur introuvable')
 
+    // 🔥 On ajoute archived: false ici
     const games = await prisma.game.findMany({
         where: {
+            archived: false,
             OR: [
                 { playerWhiteId: user.id },
                 { playerBlackId: user.id },
             ],
         },
-        orderBy: {
-            updatedAt: 'desc',
-        },
         include: {
             playerWhite: {
                 select: {
                     id: true,
                     name: true,
-                    userDetails: { select: { username: true } },
                     image: true,
+                    userDetails: { select: { username: true } },
                 },
             },
             playerBlack: {
                 select: {
                     id: true,
                     name: true,
-                    userDetails: { select: { username: true } },
                     image: true,
+                    userDetails: { select: { username: true } },
                 },
             },
-            moves: {
-                orderBy: { moveNumber: 'asc' },
-            },
+            moves: { orderBy: { moveNumber: 'asc' } },
         },
+        orderBy: { updatedAt: 'desc' },
     })
 
     return games.map((game) => ({
-        id: game.id,
-        fen: game.moves.length > 0
-            ? game.moves[game.moves.length - 1].fen
-            : 'start',
-        whitePlayer: {
-            id: game.playerWhite.id,
-            name: game.playerWhite.name,
-            username: game.playerWhite.userDetails?.username || 'inconnu',
-            avatar: game.playerWhite.image || '',
-        },
-        blackPlayer: {
-            id: game.playerBlack.id,
-            name: game.playerBlack.name,
-            username: game.playerBlack.userDetails?.username || 'inconnu',
-            avatar: game.playerBlack.image || '',
-        },
-    }))
-}
-
-export async function getGameById(gameId: string) {
-    const session = await auth.api.getSession({ headers: await headers() })
-    if (!session?.user?.email) throw new Error('Non autorisé')
-
-    const user = await prisma.user.findUnique({
-        where: { email: session.user.email },
-    })
-    if (!user) throw new Error('Utilisateur introuvable')
-
-    const game = await prisma.game.findUnique({
-        where: { id: gameId },
-        include: {
-            moves: {
-                orderBy: { moveNumber: 'asc' },
-            },
-            playerWhite: {
-                select: {
-                    id: true,
-                    name: true,
-                    image: true,
-                    userDetails: { select: { username: true } },
-                },
-            },
-            playerBlack: {
-                select: {
-                    id: true,
-                    name: true,
-                    image: true,
-                    userDetails: { select: { username: true } },
-                },
-            },
-        },
-    })
-
-    if (!game) throw new Error('Partie non trouvée')
-
-    return {
         id: game.id,
         fen:
             game.moves.length > 0
                 ? game.moves[game.moves.length - 1].fen
                 : 'start',
-        moves: game.moves,
+        whitePlayer: {
+            id: game.playerWhite.id,
+            name: game.playerWhite.name,
+            username: game.playerWhite.userDetails?.username ?? 'inconnu',
+            avatar: game.playerWhite.image ?? '',
+        },
+        blackPlayer: {
+            id: game.playerBlack.id,
+            name: game.playerBlack.name,
+            username: game.playerBlack.userDetails?.username ?? 'inconnu',
+            avatar: game.playerBlack.image ?? '',
+        },
+        status: game.status,
+        result: game.result,
+    }))
+}
+
+export async function getGameById(gameId: string): Promise<GameData> {
+    // … auth/session idem
+    const game = await prisma.game.findUnique({
+        where: { id: gameId },
+        include: {
+            moves: { orderBy: { moveNumber: 'asc' } },
+            playerWhite: { select: { id: true, name: true, image: true } },
+            playerBlack: { select: { id: true, name: true, image: true } },
+        },
+    })
+    if (!game) throw new Error('Partie non trouvée')
+
+    return {
+        id: game.id,
         playerWhite: {
             id: game.playerWhite.id,
             name: game.playerWhite.name,
-            avatar: game.playerWhite.image ?? '',
-            username: game.playerWhite.userDetails?.username ?? 'inconnu',
+            image: game.playerWhite.image,
         },
         playerBlack: {
             id: game.playerBlack.id,
             name: game.playerBlack.name,
-            avatar: game.playerBlack.image ?? '',
-            username: game.playerBlack.userDetails?.username ?? 'inconnu',
+            image: game.playerBlack.image,
         },
+        moves: game.moves.map((m) => ({
+            notation: m.notation,
+            fen: m.fen,
+            moveNumber: m.moveNumber,
+        })),
+        status: game.status,
+        result: game.result,
     }
 }
 
@@ -549,4 +556,58 @@ export async function createUserDetails(data: {
     })
 
     return userDetails
+}
+
+export async function finishGame(
+    gameId: string,
+    result: 'WHITE_WIN' | 'BLACK_WIN' | 'DRAW'
+) {
+    const res = await fetch(`/api/games/${gameId}/finish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ result }),
+    })
+    if (!res.ok) {
+        console.error('Erreur API finishGame:', await res.text())
+    }
+    return res.json()
+}
+
+
+export async function syncGameResult(
+    gameId: string,
+    result: Extract<GameResult, 'WHITE_WIN' | 'BLACK_WIN' | 'DRAW'>
+) {
+    // Récupère le status actuel
+    const existing = await prisma.game.findUnique({
+        where: { id: gameId },
+        select: { status: true },
+    })
+    if (existing?.status === GameStatus.ONGOING) {
+        await prisma.game.update({
+            where: { id: gameId },
+            data: {
+                status: GameStatus.FINISHED,
+                result: result,
+                endedAt: new Date(),
+            },
+        })
+    }
+}
+
+export async function archiveGame(formData: FormData) {
+    'use server'
+    const gameId = formData.get('gameId')?.toString()
+    if (!gameId) throw new Error('gameId manquant')
+
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.email) throw new Error('Non autorisé')
+
+    await prisma.game.update({
+        where: { id: gameId },
+        data: { archived: true },
+    })
+
+    // force la réaffichage de /mygames
+    revalidatePath('/mygames')
 }

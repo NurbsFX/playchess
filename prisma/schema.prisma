@@ -91,7 +91,8 @@ model Game {
   moves       Move[]
   result      GameResult
   status      GameStatus @default(PENDING)
-  type        GameType   @default(DAILY) // <- Ajout ici du type de partie avec DAILY par défaut
+  type        GameType   @default(DAILY)
+  archived    Boolean    @default(false) // 👈 Champ ajouté ici
   startedAt   DateTime?
   endedAt     DateTime?
 }

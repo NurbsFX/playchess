@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { Chess, Square } from 'chess.js'
 import GameBoard from '@/components/items/gameboard'
 import MoveNavigator from '@/components/items/movenavigator'
-import { getGameById, getCurrentUserId, playMove, getUserProfileById } from '@/lib/action'
+import { getGameById, getCurrentUserId, playMove, getUserProfileById, syncGameResult } from '@/lib/action'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -20,14 +20,26 @@ export default function GamePage() {
     const [loading, setLoading] = useState(true)
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
     const [currentMove, setCurrentMove] = useState(0)
+    const [gameOver, setGameOver] = useState(false)
+    const [result, setResult] = useState<'1-0' | '0-1' | '½-½' | null>(null)
 
     interface GameInfo {
-        playerWhite: { id: string; name: string; image?: string | null };
-        playerBlack: { id: string; name: string; image?: string | null };
-        moves: { notation: string }[];
+        playerWhite: { id: string; name: string; image?: string | null }
+        playerBlack: { id: string; name: string; image?: string | null }
+        moves: { notation: string }[]
     }
 
     const [gameInfo, setGameInfo] = useState<GameInfo | null>(null)
+
+    /** Détermine le résultat final selon l’état du jeu */
+    function computeResult(c: Chess): '1-0' | '0-1' | '½-½' {
+        if (c.isCheckmate()) {
+            // c.turn() renvoie la couleur à qui c'est de jouer, donc l'autre a maté
+            return c.turn() === 'b' ? '1-0' : '0-1'
+        }
+        // toutes les autres fins sont considérées comme nulle
+        return '½-½'
+    }
 
     useEffect(() => {
         const load = async () => {
@@ -36,18 +48,37 @@ export default function GamePage() {
                     getCurrentUserId(),
                     getGameById(gameId as string),
                 ])
+
+                // rebuild
                 const c = new Chess()
-                for (const move of game.moves) {
-                    c.move(move.notation)
-                }
+                for (const mv of game.moves) c.move(mv.notation)
+
+                // états locaux
                 setChess(c)
                 setCurrentMove(game.moves.length - 1)
                 setPreviewFen(null)
                 setSelectedMove(null)
                 setCurrentUserId(userId)
                 setGameInfo(game)
+
+                // fin de partie & résultat calculé
+                const over = c.isGameOver()
+                const res = over ? computeResult(c) : null
+                setGameOver(over)
+                setResult(res)
+
+                // 🔄 synchronisation BDD si la partie est déjà finie mais que
+                // game.status was still ONGOING
+                if (over && game.status === 'ONGOING' && res) {
+                    // mappe '1-0'|'0-1'|'½-½' → GameResult
+                    const dbRes =
+                        res === '1-0' ? 'WHITE_WIN' :
+                            res === '0-1' ? 'BLACK_WIN' :
+                                'DRAW'
+                    await syncGameResult(game.id, dbRes)
+                }
             } catch (error) {
-                console.error('Erreur lors du chargement de la partie:', error)
+                console.error('Erreur lors du chargement de la partie :', error)
             } finally {
                 setLoading(false)
             }
@@ -79,6 +110,7 @@ export default function GamePage() {
         return false
     }
 
+
     const handleConfirm = async () => {
         if (!selectedMove || !gameId) return
         try {
@@ -96,6 +128,20 @@ export default function GamePage() {
             setCurrentMove(game.moves.length - 1)
             setPreviewFen(null)
             setSelectedMove(null)
+
+            // Détecter la fin de partie
+            const over = c.isGameOver()
+            setGameOver(over)
+            const res = over ? computeResult(c) : null
+            setResult(res)
+
+            if (over && c.isCheckmate() && res) {
+                const dbRes =
+                    res === '1-0' ? 'WHITE_WIN' :
+                        res === '0-1' ? 'BLACK_WIN' :
+                            'DRAW'
+                await syncGameResult(gameId as string, dbRes)
+            }
         } catch (e) {
             console.error('Erreur lors du coup', e)
         }
@@ -189,6 +235,7 @@ export default function GamePage() {
         );
     }
 
+
     const displayedFen = useMemo(() => {
         if (!gameInfo) return 'start'
         const c = new Chess()
@@ -216,13 +263,28 @@ export default function GamePage() {
                                 <>
                                     <div className="w-full max-w-md flex flex-col items-center">
                                         <div className="mb-4">
-                                            {isPlayerTurn() ? (
+                                            {gameOver && result ? (
+                                                <div className="text-center mb-4">
+                                                    <p
+                                                        className={`font-semibold ${result === '½-½'
+                                                            ? 'text-gray-600'
+                                                            : getPlayerColor() === (result === '1-0' ? 'w' : 'b')
+                                                                ? 'text-green-600'
+                                                                : 'text-red-600'
+                                                            }`}
+                                                    >
+                                                        {result === '1-0' && 'Victoire des Blancs'}
+                                                        {result === '0-1' && 'Victoire des Noirs'}
+                                                        {result === '½-½' && 'Partie nulle (½-½)'}
+                                                    </p>
+                                                </div>
+                                            ) : isPlayerTurn() ? (
                                                 <p className="text-sm text-green-600 font-semibold text-center">
                                                     C&apos;est à vous de jouer !
                                                 </p>
                                             ) : (
                                                 <p className="text-sm text-muted-foreground text-center">
-                                                    En attente du coup de l&apos;adversaire...
+                                                    En attente du coup de l&apos;adversaire…
                                                 </p>
                                             )}
                                         </div>
