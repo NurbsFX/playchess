@@ -33,6 +33,9 @@ model User {
 
   @@unique([email])
   @@map("user")
+
+  // 👇 Ajoute cette ligne pour rendre la relation MyGames bidirectionnelle
+  myGames        MyGames[]
 }
 
 model Session {
@@ -81,20 +84,32 @@ model Verification {
 }
 
 model Game {
-  id          String    @id @default(uuid())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  playerWhite User      @relation("WhiteGames", fields: [playerWhiteId], references: [id])
+  id            String    @id @default(uuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  playerWhite   User      @relation("WhiteGames", fields: [playerWhiteId], references: [id])
   playerWhiteId String
-  playerBlack User      @relation("BlackGames", fields: [playerBlackId], references: [id])
+  playerBlack   User      @relation("BlackGames", fields: [playerBlackId], references: [id])
   playerBlackId String
-  moves       Move[]
-  result      GameResult
-  status      GameStatus @default(PENDING)
-  type        GameType   @default(DAILY)
-  archived    Boolean    @default(false) // 👈 Champ ajouté ici
-  startedAt   DateTime?
-  endedAt     DateTime?
+  moves         Move[]
+  result        GameResult
+  status        GameStatus @default(PENDING)
+  type          GameType   @default(DAILY)
+  startedAt     DateTime?
+  endedAt       DateTime?
+  myGames       MyGames[] // 👈 Ajout de la relation vers la table pivot
+}
+
+model MyGames {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameId    String
+  archived  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, gameId]) // Chaque joueur ne peut avoir qu’un seul lien à une partie donnée
 }
 
 model Move {

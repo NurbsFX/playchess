@@ -162,7 +162,17 @@ export async function acceptInvitation(invitationId: string) {
                 status: GameStatus.ONGOING,
                 startedAt: new Date(),
                 result: GameResult.UNDECIDED,
+                // ↙ ici on crée les deux entrées pivot MyGames
+                myGames: {
+                    createMany: {
+                        data: [
+                            { userId: whiteId },
+                            { userId: blackId },
+                        ],
+                    },
+                },
             },
+            include: { myGames: true },
         }),
     ])
 
@@ -276,6 +286,7 @@ export async function getUserGames() {
     return games;
 }
 
+// app/actions/server.ts
 export async function getAllGamesForCurrentUser(): Promise<UserGameSummary[]> {
     const session = await auth.api.getSession({ headers: await headers() })
     if (!session?.user?.email) throw new Error('Non autorisé')
@@ -285,14 +296,15 @@ export async function getAllGamesForCurrentUser(): Promise<UserGameSummary[]> {
     })
     if (!user) throw new Error('Utilisateur introuvable')
 
-    // 🔥 On ajoute archived: false ici
     const games = await prisma.game.findMany({
         where: {
-            archived: false,
-            OR: [
-                { playerWhiteId: user.id },
-                { playerBlackId: user.id },
-            ],
+            // on ne garde que les parties liées à l’utilisateur ET non archivées
+            myGames: {
+                some: {
+                    userId: user.id,
+                    archived: false,
+                },
+            },
         },
         include: {
             playerWhite: {
@@ -600,14 +612,30 @@ export async function archiveGame(formData: FormData) {
     const gameId = formData.get('gameId')?.toString()
     if (!gameId) throw new Error('gameId manquant')
 
+    // Authentification
     const session = await auth.api.getSession({ headers: await headers() })
     if (!session?.user?.email) throw new Error('Non autorisé')
 
-    await prisma.game.update({
-        where: { id: gameId },
-        data: { archived: true },
+    // Récupérer l'ID utilisateur
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { id: true },
+    })
+    if (!user) throw new Error('Utilisateur introuvable')
+
+    // Mettre à jour l'entrée pivot MyGames pour cet user + game
+    await prisma.myGames.update({
+        where: {
+            userId_gameId: {
+                userId: user.id,
+                gameId: gameId,
+            },
+        },
+        data: {
+            archived: true,
+        },
     })
 
-    // force la réaffichage de /mygames
+    // Revalider la page mes parties
     revalidatePath('/mygames')
 }

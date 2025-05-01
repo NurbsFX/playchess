@@ -27,6 +27,20 @@ export default async function GamesPage() {
     // on ne reçoit plus que les non-archivées en base
     const games: UserGameSummary[] = await getAllGamesForCurrentUser()
 
+    // Si pas de parties, proposer un nouvel adversaire
+    if (games.length === 0) {
+        return (
+            <div className=" container mx-auto py-16 text-center h-screen ">
+                <p className="text-xl font-medium mb-6">Vous n’avez aucune partie en cours.</p>
+                <Link href="/play/versus">
+                    <Button size="lg" className="px-8">
+                        Trouver un nouvel adversaire
+                    </Button>
+                </Link>
+            </div>
+        )
+    }
+
     const groupedGames: UserGameSummary[][] = []
     for (let i = 0; i < games.length; i += 3) {
         groupedGames.push(games.slice(i, i + 3))
@@ -43,18 +57,25 @@ export default async function GamesPage() {
 
                         let badge: JSX.Element | null = null
                         if (game.status === 'FINISHED') {
-                            if (game.result === 'WHITE_WIN') {
+                            const isWin =
+                                (game.result === 'WHITE_WIN' && amWhite) ||
+                                (game.result === 'BLACK_WIN' && !amWhite)
+                            const isLoss =
+                                (game.result === 'WHITE_WIN' && !amWhite) ||
+                                (game.result === 'BLACK_WIN' && amWhite)
+
+                            if (isWin) {
                                 badge = (
                                     <Badge className="flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full">
                                         <Trophy className="w-4 h-4" />
-                                        {amWhite ? 'Vous avez gagné 🎉' : 'Vous avez perdu 💀'}
+                                        Vous avez gagné 🎉
                                     </Badge>
                                 )
-                            } else if (game.result === 'BLACK_WIN') {
+                            } else if (isLoss) {
                                 badge = (
                                     <Badge className="flex items-center gap-1 bg-red-100 text-red-800 px-3 py-1 rounded-full">
-                                        <Trophy className="w-4 h-4 rotate-180" />
-                                        {amWhite ? 'Vous avez perdu 💀' : 'Vous avez gagné 🎉'}
+                                        <Trophy className="w-4 h-4" />
+                                        Vous avez perdu 💀
                                     </Badge>
                                 )
                             } else {
