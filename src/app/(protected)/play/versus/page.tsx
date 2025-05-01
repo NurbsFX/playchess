@@ -7,8 +7,8 @@ import { InviteButton } from '@/components/items/invite-button';
 
 export default async function Page() {
     const session = await auth.api.getSession({ headers: await headers() });
-    const users = await getAllPlayers()
-    const currentUserId = session?.user?.id
+    const currentUserId = session?.user?.id;
+    const users = (await getAllPlayers()).filter(user => user.id !== currentUserId);
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-6">
@@ -38,9 +38,7 @@ export default async function Page() {
                             </div>
                         </div>
 
-                        {user.id !== currentUserId && (
-                            <InviteButton receiverId={user.id} />
-                        )}
+                        <InviteButton receiverId={user.id} />
                     </li>
                 ))}
             </ul>
