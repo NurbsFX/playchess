@@ -27,7 +27,7 @@ const profileItems = [
 
 export function AppSidebar() {
     return (
-        <Sidebar>
+        <Sidebar collapsible="none" className="h-screen">
             <SidebarContent className="mt-[var(--navbar-height)] ml-4">
                 <SidebarGroup>
                     <SidebarGroupLabel>Profil</SidebarGroupLabel>

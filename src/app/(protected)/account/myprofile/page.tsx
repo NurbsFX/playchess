@@ -17,6 +17,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { LoadingDots } from "@/components/ui/loading-dots"
+
 
 export default function ProfilePage() {
     const [editingField, setEditingField] = useState<string | null>(null);
@@ -83,212 +85,214 @@ export default function ProfilePage() {
     };
 
     if (!profile) {
-        return <div className="flex justify-center items-center h-64">Chargement...</div>;
+        return <div className="flex justify-center items-center"><LoadingDots /></div>;
     }
 
     return (
-        <div className="flex flex-col items-center max-w-3xl mx-auto p-6">
-            <div className="flex items-start gap-6 w-full">
-                {/* Avatar */}
-                <div className="flex flex-col items-center gap-2">
+        <div className="flex justify-center items-center">
+            <div className="flex flex-col items-center max-w-3xl mx-auto p-6">
+                <div className="flex items-start gap-6 w-full justify-center">
                     {/* Avatar */}
                     <div className="flex flex-col items-center gap-2">
                         {/* Avatar */}
-                        <Avatar className="h-24 w-24">
-                            <AvatarImage
-                                src={profile?.image || ""}
-                                alt={profile?.name || "Avatar"}
-                            />
-                            <AvatarFallback>
-                                {profile?.name
-                                    ?.split(" ")
-                                    .map((n) => n[0])
-                                    .join("")
-                                    .slice(0, 2)
-                                    .toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-
-                        {/* Modifier l'image */}
-                        {editingField === "image" ? (
-                            <Input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => {
-                                            const base64String = reader.result as string;
-                                            handleChange("image", base64String); // on enregistre l'image encodée
-                                        };
-                                        reader.readAsDataURL(file);
-                                    }
-                                }}
-                                className="mt-2 w-40 text-xs"
-                            />
-                        ) : (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setEditingField("image")}
-                                className="mt-2 text-xs text-gray-500 dark:text-white  hover:text-black"
-                            >
-                                Modifier l&apos;image
-                            </Button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Infos */}
-                <div className="flex flex-col justify-start gap-4 w-full">
-                    {/* Flag + Nom */}
-                    <div className="flex items-center gap-2">
-                        {/* Flag */}
-                        {editingField === "flag" ? (
-                            <Select
-                                value={profile.flag}
-                                onValueChange={(value) => handleChange("flag", value)}
-                            >
-                                <SelectTrigger className="w-[80px] text-2xl text-center">
-                                    <SelectValue>{profile.flag}</SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup>
-                                        <SelectLabel>Choisir un drapeau</SelectLabel>
-                                        {Array.from(new Set([
-                                            "🇦🇫", "🇦🇽", "🇦🇱", "🇩🇿", "🇦🇸", "🇦🇩", "🇦🇴", "🇦🇮", "🇦🇶", "🇦🇬", "🇦🇷", "🇦🇲", "🇦🇼", "🇦🇺", "🇦🇹", "🇦🇿",
-                                            "🇧🇸", "🇧🇭", "🇧🇩", "🇧🇧", "🇧🇾", "🇧🇪", "🇧🇿", "🇧🇯", "🇧🇲", "🇧🇹", "🇧🇴", "🇧🇦", "🇧🇼", "🇧🇻", "🇧🇷", "🇮🇴",
-                                            "🇻🇬", "🇧🇳", "🇧🇬", "🇧🇫", "🇧🇮", "🇰🇭", "🇨🇲", "🇨🇦", "🇨🇻", "🇰🇾", "🇨🇫", "🇹🇩", "🇨🇱", "🇨🇳", "🇨🇽", "🇨🇨",
-                                            "🇨🇴", "🇰🇲", "🇨🇬", "🇨🇩", "🇨🇰", "🇨🇷", "🇭🇷", "🇨🇺", "🇨🇼", "🇨🇾", "🇨🇿", "🇩🇰", "🇩🇯", "🇩🇲", "🇩🇴", "🇪🇨",
-                                            "🇪🇬", "🇸🇻", "🇬🇶", "🇪🇷", "🇪🇪", "🇪🇹", "🇫🇰", "🇫🇴", "🇫🇯", "🇫🇮", "🇫🇷", "🇬🇫", "🇵🇫", "🇹🇫", "🇬🇦", "🇬🇲",
-                                            "🇬🇪", "🇩🇪", "🇬🇭", "🇬🇮", "🇬🇷", "🇬🇱", "🇬🇩", "🇬🇵", "🇬🇺", "🇬🇹", "🇬🇬", "🇬🇳", "🇬🇼", "🇬🇾", "🇭🇹", "🇭🇲",
-                                            "🇻🇦", "🇭🇳", "🇭🇰", "🇭🇺", "🇮🇸", "🇮🇳", "🇮🇩", "🇮🇷", "🇮🇶", "🇮🇪", "🇮🇲", "🇮🇱", "🇮🇹", "🇨🇮", "🇯🇲", "🇯🇵",
-                                            "🇯🇪", "🇯🇴", "🇰🇿", "🇰🇪", "🇰🇮", "🇽🇰", "🇰🇼", "🇰🇬", "🇱🇦", "🇱🇻", "🇱🇧", "🇱🇸", "🇱🇷", "🇱🇾", "🇱🇮", "🇱🇹",
-                                            "🇱🇺", "🇲🇴", "🇲🇰", "🇲🇬", "🇲🇼", "🇲🇾", "🇲🇻", "🇲🇱", "🇲🇹", "🇲🇭", "🇲🇶", "🇲🇷", "🇲🇺", "🇾🇹", "🇲🇽", "🇫🇲",
-                                            "🇲🇩", "🇲🇨", "🇲🇳", "🇲🇪", "🇲🇸", "🇲🇦", "🇲🇿", "🇲🇲", "🇳🇦", "🇳🇷", "🇳🇵", "🇳🇱", "🇳🇨", "🇳🇿", "🇳🇮", "🇳🇪",
-                                            "🇳🇬", "🇳🇺", "🇳🇫", "🇰🇵", "🇲🇵", "🇳🇴", "🇴🇲", "🇵🇰", "🇵🇼", "🇵🇸", "🇵🇦", "🇵🇬", "🇵🇾", "🇵🇪", "🇵🇭", "🇵🇳",
-                                            "🇵🇱", "🇵🇹", "🇵🇷", "🇶🇦", "🇷🇪", "🇷🇴", "🇷🇺", "🇷🇼", "🇧🇱", "🇸🇭", "🇰🇳", "🇱🇨", "🇲🇫", "🇻🇨", "🇼🇸", "🇸🇲",
-                                            "🇸🇹", "🇸🇦", "🇸🇳", "🇷🇸", "🇸🇨", "🇸🇱", "🇸🇬", "🇸🇽", "🇸🇰", "🇸🇮", "🇸🇧", "🇸🇴", "🇿🇦", "🇬🇸", "🇰🇷", "🇸🇸",
-                                            "🇪🇸", "🇱🇰", "🇸🇩", "🇸🇷", "🇸🇯", "🇸🇪", "🇨🇭", "🇸🇾", "🇹🇼", "🇹🇯", "🇹🇿", "🇹🇭", "🇹🇱", "🇹🇬", "🇹🇰", "🇹🇴",
-                                            "🇹🇹", "🇹🇳", "🇹🇷", "🇹🇲", "🇹🇨", "🇹🇻", "🇺🇬", "🇺🇦", "🇦🇪", "🇬🇧", "🇺🇸", "🇺🇾", "🇺🇿", "🇻🇺", "🇻🇪", "🇻🇳",
-                                            "🇼🇫", "🇪🇭", "🇾🇪", "🇿🇲", "🇿🇼"
-                                        ])).map((flag) => (
-                                            <SelectItem key={flag} value={flag}>
-                                                {flag}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                        ) : (
-                            <div className="flex items-center gap-1">
-                                <span className="text-2xl">{profile.flag}</span>
-                                <Pencil
-                                    size={16}
-                                    className="cursor-pointer text-gray-400"
-                                    onClick={() => setEditingField(editingField === "flag" ? null : "flag")}
+                        <div className="flex flex-col items-center gap-2">
+                            {/* Avatar */}
+                            <Avatar className="h-24 w-24">
+                                <AvatarImage
+                                    src={profile?.image || ""}
+                                    alt={profile?.name || "Avatar"}
                                 />
-                            </div>
-                        )}
+                                <AvatarFallback>
+                                    {profile?.name
+                                        ?.split(" ")
+                                        .map((n) => n[0])
+                                        .join("")
+                                        .slice(0, 2)
+                                        .toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
 
-                        {/* Name */}
-                        {editingField === "name" ? (
-                            <Input
-                                value={profile.name}
-                                onChange={(e) => handleChange("name", e.target.value)}
-                                className="text-2xl font-bold w-fit"
-                            />
-                        ) : (
-                            <div className="flex items-center gap-1">
-                                <h1 className="text-2xl font-bold">{profile.name}</h1>
-                                <Pencil
-                                    size={16}
-                                    className="cursor-pointer text-gray-400"
-                                    onClick={() => setEditingField(editingField === "name" ? null : "name")}
+                            {/* Modifier l'image */}
+                            {editingField === "image" ? (
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                const base64String = reader.result as string;
+                                                handleChange("image", base64String); // on enregistre l'image encodée
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
+                                    className="mt-2 w-40 text-xs"
                                 />
-                            </div>
-                        )}
+                            ) : (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setEditingField("image")}
+                                    className="mt-2 text-xs text-gray-500 dark:text-white  hover:text-black"
+                                >
+                                    Modifier l&apos;image
+                                </Button>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Username */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-gray-600 dark:text-white text-base">@</span>
-                        {editingField === "username" ? (
-                            <Input
-                                value={profile.username}
-                                onChange={(e) => handleChange("username", e.target.value)}
-                                className="text-base w-fit"
+                    {/* Infos */}
+                    <div className="flex flex-col justify-start gap-4 w-full">
+                        {/* Flag + Nom */}
+                        <div className="flex items-center gap-2">
+                            {/* Flag */}
+                            {editingField === "flag" ? (
+                                <Select
+                                    value={profile.flag}
+                                    onValueChange={(value) => handleChange("flag", value)}
+                                >
+                                    <SelectTrigger className="w-[80px] text-2xl text-center">
+                                        <SelectValue>{profile.flag}</SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            <SelectLabel>Choisir un drapeau</SelectLabel>
+                                            {Array.from(new Set([
+                                                "🇦🇫", "🇦🇽", "🇦🇱", "🇩🇿", "🇦🇸", "🇦🇩", "🇦🇴", "🇦🇮", "🇦🇶", "🇦🇬", "🇦🇷", "🇦🇲", "🇦🇼", "🇦🇺", "🇦🇹", "🇦🇿",
+                                                "🇧🇸", "🇧🇭", "🇧🇩", "🇧🇧", "🇧🇾", "🇧🇪", "🇧🇿", "🇧🇯", "🇧🇲", "🇧🇹", "🇧🇴", "🇧🇦", "🇧🇼", "🇧🇻", "🇧🇷", "🇮🇴",
+                                                "🇻🇬", "🇧🇳", "🇧🇬", "🇧🇫", "🇧🇮", "🇰🇭", "🇨🇲", "🇨🇦", "🇨🇻", "🇰🇾", "🇨🇫", "🇹🇩", "🇨🇱", "🇨🇳", "🇨🇽", "🇨🇨",
+                                                "🇨🇴", "🇰🇲", "🇨🇬", "🇨🇩", "🇨🇰", "🇨🇷", "🇭🇷", "🇨🇺", "🇨🇼", "🇨🇾", "🇨🇿", "🇩🇰", "🇩🇯", "🇩🇲", "🇩🇴", "🇪🇨",
+                                                "🇪🇬", "🇸🇻", "🇬🇶", "🇪🇷", "🇪🇪", "🇪🇹", "🇫🇰", "🇫🇴", "🇫🇯", "🇫🇮", "🇫🇷", "🇬🇫", "🇵🇫", "🇹🇫", "🇬🇦", "🇬🇲",
+                                                "🇬🇪", "🇩🇪", "🇬🇭", "🇬🇮", "🇬🇷", "🇬🇱", "🇬🇩", "🇬🇵", "🇬🇺", "🇬🇹", "🇬🇬", "🇬🇳", "🇬🇼", "🇬🇾", "🇭🇹", "🇭🇲",
+                                                "🇻🇦", "🇭🇳", "🇭🇰", "🇭🇺", "🇮🇸", "🇮🇳", "🇮🇩", "🇮🇷", "🇮🇶", "🇮🇪", "🇮🇲", "🇮🇱", "🇮🇹", "🇨🇮", "🇯🇲", "🇯🇵",
+                                                "🇯🇪", "🇯🇴", "🇰🇿", "🇰🇪", "🇰🇮", "🇽🇰", "🇰🇼", "🇰🇬", "🇱🇦", "🇱🇻", "🇱🇧", "🇱🇸", "🇱🇷", "🇱🇾", "🇱🇮", "🇱🇹",
+                                                "🇱🇺", "🇲🇴", "🇲🇰", "🇲🇬", "🇲🇼", "🇲🇾", "🇲🇻", "🇲🇱", "🇲🇹", "🇲🇭", "🇲🇶", "🇲🇷", "🇲🇺", "🇾🇹", "🇲🇽", "🇫🇲",
+                                                "🇲🇩", "🇲🇨", "🇲🇳", "🇲🇪", "🇲🇸", "🇲🇦", "🇲🇿", "🇲🇲", "🇳🇦", "🇳🇷", "🇳🇵", "🇳🇱", "🇳🇨", "🇳🇿", "🇳🇮", "🇳🇪",
+                                                "🇳🇬", "🇳🇺", "🇳🇫", "🇰🇵", "🇲🇵", "🇳🇴", "🇴🇲", "🇵🇰", "🇵🇼", "🇵🇸", "🇵🇦", "🇵🇬", "🇵🇾", "🇵🇪", "🇵🇭", "🇵🇳",
+                                                "🇵🇱", "🇵🇹", "🇵🇷", "🇶🇦", "🇷🇪", "🇷🇴", "🇷🇺", "🇷🇼", "🇧🇱", "🇸🇭", "🇰🇳", "🇱🇨", "🇲🇫", "🇻🇨", "🇼🇸", "🇸🇲",
+                                                "🇸🇹", "🇸🇦", "🇸🇳", "🇷🇸", "🇸🇨", "🇸🇱", "🇸🇬", "🇸🇽", "🇸🇰", "🇸🇮", "🇸🇧", "🇸🇴", "🇿🇦", "🇬🇸", "🇰🇷", "🇸🇸",
+                                                "🇪🇸", "🇱🇰", "🇸🇩", "🇸🇷", "🇸🇯", "🇸🇪", "🇨🇭", "🇸🇾", "🇹🇼", "🇹🇯", "🇹🇿", "🇹🇭", "🇹🇱", "🇹🇬", "🇹🇰", "🇹🇴",
+                                                "🇹🇹", "🇹🇳", "🇹🇷", "🇹🇲", "🇹🇨", "🇹🇻", "🇺🇬", "🇺🇦", "🇦🇪", "🇬🇧", "🇺🇸", "🇺🇾", "🇺🇿", "🇻🇺", "🇻🇪", "🇻🇳",
+                                                "🇼🇫", "🇪🇭", "🇾🇪", "🇿🇲", "🇿🇼"
+                                            ])).map((flag) => (
+                                                <SelectItem key={flag} value={flag}>
+                                                    {flag}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <div className="flex items-center gap-1">
+                                    <span className="text-2xl">{profile.flag}</span>
+                                    <Pencil
+                                        size={16}
+                                        className="cursor-pointer text-gray-400"
+                                        onClick={() => setEditingField(editingField === "flag" ? null : "flag")}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Name */}
+                            {editingField === "name" ? (
+                                <Input
+                                    value={profile.name}
+                                    onChange={(e) => handleChange("name", e.target.value)}
+                                    className="text-2xl font-bold w-fit"
+                                />
+                            ) : (
+                                <div className="flex items-center gap-1">
+                                    <h1 className="text-2xl font-bold">{profile.name}</h1>
+                                    <Pencil
+                                        size={16}
+                                        className="cursor-pointer text-gray-400"
+                                        onClick={() => setEditingField(editingField === "name" ? null : "name")}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Username */}
+                        <div className="flex items-center gap-2">
+                            <span className="text-gray-600 dark:text-white text-base">@</span>
+                            {editingField === "username" ? (
+                                <Input
+                                    value={profile.username}
+                                    onChange={(e) => handleChange("username", e.target.value)}
+                                    className="text-base w-fit"
+                                />
+                            ) : (
+                                <p className="text-gray-600 dark:text-white  text-base">{profile.username}</p>
+                            )}
+                            <Pencil
+                                size={16}
+                                className="cursor-pointer text-gray-400"
+                                onClick={() => setEditingField(editingField === "username" ? null : "username")}
+                            />
+                        </div>
+
+                        {/* Email */}
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-white ">
+                            <Mail className="h-5 w-5" />
+                            <p className="text-sm dark:text-white ">{profile.email}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bio */}
+                <div className="mt-6 w-full relative">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                        Bio
+                    </label>
+
+                    <div className="relative">
+                        {editingField === "bio" ? (
+                            <Textarea
+                                value={profile.bio}
+                                onChange={(e) => handleChange("bio", e.target.value)}
+                                className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#27272a] px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition resize-none"
+                                placeholder="Parlez-nous un peu de vous..."
+                                rows={4}
                             />
                         ) : (
-                            <p className="text-gray-600 dark:text-white  text-base">{profile.username}</p>
+                            <p className="w-full text-sm text-gray-700 dark:text-white whitespace-pre-line bg-gray-50 dark:bg-[#27272a] rounded-md px-3 py-2 min-h-[100px]">
+                                {profile.bio || "Aucune bio renseignée."}
+                            </p>
                         )}
-                        <Pencil
-                            size={16}
-                            className="cursor-pointer text-gray-400"
-                            onClick={() => setEditingField(editingField === "username" ? null : "username")}
-                        />
+
+                        {/* Pencil Button */}
+                        <button
+                            type="button"
+                            onClick={() => setEditingField(editingField === "bio" ? null : "bio")}
+                            className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                            aria-label="Modifier la bio"
+                        >
+                            <Pencil size={18} className="text-gray-500" />
+                        </button>
                     </div>
+                </div>
 
-                    {/* Email */}
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-white ">
-                        <Mail className="h-5 w-5" />
-                        <p className="text-sm dark:text-white ">{profile.email}</p>
+                {/* Save button uniquement si un champ est en cours d'édition */}
+                {editingField && (
+                    <div className="flex justify-center gap-4 mt-8 w-full">
+                        <Button
+                            variant="outline"
+                            onClick={() => setEditingField(null)}
+                            disabled={isPending}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            onClick={handleSave}
+                            disabled={isPending}
+                        >
+                            {isPending ? "Enregistrement..." : "Sauvegarder"}
+                        </Button>
                     </div>
-                </div>
+                )}
             </div>
-
-            {/* Bio */}
-            <div className="mt-6 w-full relative">
-                <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-                    Bio
-                </label>
-
-                <div className="relative">
-                    {editingField === "bio" ? (
-                        <Textarea
-                            value={profile.bio}
-                            onChange={(e) => handleChange("bio", e.target.value)}
-                            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#27272a] px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition resize-none"
-                            placeholder="Parlez-nous un peu de vous..."
-                            rows={4}
-                        />
-                    ) : (
-                        <p className="w-full text-sm text-gray-700 dark:text-white whitespace-pre-line bg-gray-50 dark:bg-[#27272a] rounded-md px-3 py-2 min-h-[100px]">
-                            {profile.bio || "Aucune bio renseignée."}
-                        </p>
-                    )}
-
-                    {/* Pencil Button */}
-                    <button
-                        type="button"
-                        onClick={() => setEditingField(editingField === "bio" ? null : "bio")}
-                        className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-                        aria-label="Modifier la bio"
-                    >
-                        <Pencil size={18} className="text-gray-500" />
-                    </button>
-                </div>
-            </div>
-
-            {/* Save button uniquement si un champ est en cours d'édition */}
-            {editingField && (
-                <div className="flex justify-center gap-4 mt-8 w-full">
-                    <Button
-                        variant="outline"
-                        onClick={() => setEditingField(null)}
-                        disabled={isPending}
-                    >
-                        Annuler
-                    </Button>
-                    <Button
-                        onClick={handleSave}
-                        disabled={isPending}
-                    >
-                        {isPending ? "Enregistrement..." : "Sauvegarder"}
-                    </Button>
-                </div>
-            )}
         </div>
     );
 }
