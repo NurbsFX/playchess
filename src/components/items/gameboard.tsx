@@ -103,15 +103,12 @@ export default function GameBoard({
             {/* captured pieces on the side of the opponent (top) */}
             {showStats && (
                 <div
-                    className="flex flex-wrap justify-start mb-2"
+                    className="flex flex-wrap justify-start mb-2 min-h-[1.5rem]"
                     style={{ width: boardSize }}
                 >
                     {topCaptured.map((p, i) => (
                         <span key={i} className="text-xl mx-0.5">{p}</span>
                     ))}
-
-                    {/* si c’est le **blanc** qui mène ET qu’on voit le blanc en haut (orientation = 'black'), 
-          ou si c’est le **noir** qui mène ET qu’on voit le noir en haut (orientation = 'white') */}
                     {whiteLeads && orientation === 'black' && (
                         <span className="ml-2 text-lg font-medium">+{absDiff}</span>
                     )}
@@ -138,15 +135,13 @@ export default function GameBoard({
             {/* captured pieces on the player's side (bottom) */}
             {showStats && (
                 <div
-                    className="flex flex-wrap justify-start mt-2"
+                    className="flex flex-wrap justify-start mt-2 min-h-[3rem]"
                     style={{ width: boardSize }}
                 >
                     {bottomCaptured.map((p, i) => (
                         <span key={i} className="text-xl mx-0.5">{p}</span>
                     ))}
 
-                    {/* si c’est le **blanc** qui mène ET qu’on voit le blanc en bas (orientation = 'white'),
-          ou si c’est le **noir** qui mène ET qu’on voit le noir en bas (orientation = 'black') */}
                     {whiteLeads && orientation === 'white' && (
                         <span className="ml-2 text-lg font-medium">+{absDiff}</span>
                     )}
