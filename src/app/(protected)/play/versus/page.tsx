@@ -19,7 +19,7 @@ export default async function Page() {
     );
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-6">
+        <div className="flex flex-col items-center justify-center h-full p-6">
             <h1 className="text-3xl font-bold mb-6">Liste des joueurs</h1>
             <ul className="w-full max-w-md space-y-3">
                 {users.map((user) => (
