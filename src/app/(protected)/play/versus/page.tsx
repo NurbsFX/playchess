@@ -1,5 +1,4 @@
-// app/players/page.tsx
-import { getAllPlayers } from '@/lib/action'
+import { getAllPlayers, getUserProfileById } from '@/lib/action'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { auth } from '@/lib/auth'
 import { headers } from "next/headers";
@@ -8,7 +7,16 @@ import { InviteButton } from '@/components/items/invite-button';
 export default async function Page() {
     const session = await auth.api.getSession({ headers: await headers() });
     const currentUserId = session?.user?.id;
-    const users = (await getAllPlayers()).filter(user => user.id !== currentUserId);
+
+    const rawUsers = (await getAllPlayers()).filter(user => user.id !== currentUserId);
+
+    // Enrichir chaque user avec son profil (username inclus)
+    const users = await Promise.all(
+        rawUsers.map(async (user) => {
+            const profile = await getUserProfileById(user.id);
+            return { ...user, username: profile.username };
+        })
+    );
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-6">
@@ -33,7 +41,7 @@ export default async function Page() {
                             </Avatar>
                             <div>
                                 <p className="font-semibold">{user.name}</p>
-                                <p className="text-sm text-muted-foreground">{user.email}</p>
+                                <p className="text-sm text-muted-foreground">@{user.username}</p>
                                 <p className="text-sm text-primary">ELO : {user.elo}</p>
                             </div>
                         </div>

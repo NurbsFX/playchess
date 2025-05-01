@@ -523,3 +523,30 @@ export async function updateElo(playerRating: number, opponentRating: number, re
 
     return Math.round(newRating);
 }
+
+export async function createUserDetails(data: {
+    username: string
+    country?: string
+    flag?: string
+    bio?: string
+}) {
+    const session = await auth.api.getSession({ headers: await headers() })
+    const userId = session?.user?.id
+
+    if (!userId) {
+        throw new Error("Utilisateur non connecté")
+    }
+
+    // Create user details
+    const userDetails = await prisma.userDetails.create({
+        data: {
+            userId,
+            username: data.username,
+            country: data.country,
+            flag: data.flag,
+            bio: data.bio,
+        },
+    })
+
+    return userDetails
+}
