@@ -1,4 +1,4 @@
-import { User, Trophy } from "lucide-react"
+import { User, Trophy, UserCog } from "lucide-react"
 
 import {
     Sidebar,
@@ -22,6 +22,14 @@ const profileItems = [
         title: "Mes parties",
         url: "/mygames",
         icon: Trophy,
+    },
+]
+// Profil Menu items.
+const paramsItems = [
+    {
+        title: "Mon compte",
+        url: "/account/myaccount",
+        icon: UserCog,
     },
 ]
 
@@ -50,7 +58,7 @@ export function AppSidebar() {
                     <SidebarGroupLabel>Paramètres</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {profileItems.map((item) => (
+                            {paramsItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild>
                                         <a href={item.url}>

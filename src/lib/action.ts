@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { Chess } from 'chess.js'
 import { revalidatePath } from 'next/cache'
 
+
 const prisma = new PrismaClient()
 
 export async function invitePlayer(receiverId: string) {
@@ -585,7 +586,6 @@ export async function finishGame(
     return res.json()
 }
 
-
 export async function syncGameResult(
     gameId: string,
     result: Extract<GameResult, 'WHITE_WIN' | 'BLACK_WIN' | 'DRAW'>
@@ -640,3 +640,34 @@ export async function archiveGame(formData: FormData) {
     revalidatePath('/mygames')
 }
 
+export async function deleteAccountAction(formData: FormData): Promise<void> {
+    'use server'
+    const password = formData.get('password')?.toString()
+    if (!password) throw new Error('Mot de passe manquant')
+
+    // (1) Récupérez l’utilisateur courant
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.email) throw new Error('Non autorisé')
+
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+    if (!user) throw new Error('Utilisateur introuvable')
+
+    // (2) Vérifiez que le mot de passe est correct…
+    //    (implémentation dépend de votre gestion d’auth, p.ex. comparez avec bcrypt)
+
+    // (3) Supprimez l’utilisateur et toutes ses dépendances
+    await prisma.$transaction([
+        prisma.gameInvitation.deleteMany({ where: { OR: [{ senderId: user.id }, { receiverId: user.id }] } }),
+        prisma.myGames.deleteMany({ where: { userId: user.id } }),
+        prisma.move.deleteMany({ where: { game: { playerWhiteId: user.id } } }),
+        prisma.move.deleteMany({ where: { game: { playerBlackId: user.id } } }),
+        prisma.game.deleteMany({ where: { OR: [{ playerWhiteId: user.id }, { playerBlackId: user.id }] } }),
+        prisma.userDetails.deleteMany({ where: { userId: user.id } }),
+        prisma.account.deleteMany({ where: { userId: user.id } }),
+        prisma.session.deleteMany({ where: { userId: user.id } }),
+        prisma.user.delete({ where: { id: user.id } }),
+    ])
+
+    // (4) Force le rafraîchissement de la page /myaccount
+    revalidatePath('/myaccount')
+}
