@@ -639,3 +639,4 @@ export async function archiveGame(formData: FormData) {
     // Revalider la page mes parties
     revalidatePath('/mygames')
 }
+

@@ -1,5 +1,6 @@
 "use client";
 
+import { countries } from "@/lib/countries";
 import {
     Form,
     FormControl,
@@ -10,9 +11,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
 import Link from "next/link";
 import { FaApple, FaFacebookF } from "react-icons/fa";
+import { createUserDetails } from "@/lib/action";
 import { authClient } from "@/lib/auth-client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,8 +23,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Loader2, Crown } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const formSchema = z.object({
+    username: z
+        .string()
+        .min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères"),
+    country: z.string().length(2, "Veuillez sélectionner un pays"),
     firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
     lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
     email: z.string().email("Email invalide"),
@@ -43,6 +49,8 @@ export default function SignUp() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            username: "",
+            country: "",
             firstName: "",
             lastName: "",
             email: "",
@@ -54,17 +62,43 @@ export default function SignUp() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
         setError(null);
+
+        // 1) Création du compte
         const { error } = await authClient.signUp.email({
             email: values.email,
             password: values.password,
             name: `${values.firstName} ${values.lastName}`,
-        })
+        });
+
+        // 2) Récupérer l’objet country depuis la liste
+        const selectedCountry = countries.find((c) => c.code === values.country);
+
+        // 3) Création du profil détaillé (server action)
+        try {
+            await createUserDetails({
+                username: values.username,
+                country: selectedCountry?.name ?? values.country,
+                flag: selectedCountry?.flag,
+            });
+        } catch (e) {
+            console.error("Erreur lors de la création du username :", e);
+            toast(
+                "Compte créé, mais impossible de sauvegarder votre nom d'utilisateur.",
+            );
+            // on continue quand même
+        }
+
         if (error) {
-            toast("Une erreur est survenue lors de l'inscription. Veuillez réessayer.");
+            toast(
+                "Une erreur est survenue lors de l'inscription. Veuillez réessayer.",
+            );
             setIsLoading(false);
             return;
         }
-        toast("Un email de vérification a été envoyé à votre adresse email.");
+
+        toast(
+            "Un email de vérification a été envoyé à votre adresse email.",
+        );
         router.push("/signin");
         setIsLoading(false);
     }
@@ -99,6 +133,7 @@ export default function SignUp() {
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
+
                                 <FormField
                                     control={form.control}
                                     name="firstName"
@@ -120,6 +155,50 @@ export default function SignUp() {
                                             <FormLabel>Nom</FormLabel>
                                             <FormControl>
                                                 <Input placeholder="Doe" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="username"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Nom d&apos;utilisateur</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="votre_pseudo" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                {/* Country → Select */}
+                                <FormField
+                                    control={form.control}
+                                    name="country"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Pays</FormLabel>
+                                            <FormControl>
+                                                <Select
+                                                    onValueChange={field.onChange}
+                                                    value={field.value}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Sélectionnez un pays" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {countries.map((c) => (
+                                                            // On stocke `c.code` dans field.value
+                                                            <SelectItem key={c.code} value={c.code}>
+                                                                <span className="mr-2">{c.flag}</span>
+                                                                {c.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -217,6 +296,6 @@ export default function SignUp() {
                     </p>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
